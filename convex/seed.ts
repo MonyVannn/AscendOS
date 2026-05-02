@@ -1,81 +1,63 @@
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
-export const seedDev = mutation({
-  args: {},
+export const bootstrapAgency = internalMutation({
   handler: async (ctx) => {
-    let agencyId = null;
-
-    const existingAgency = await ctx.db
+    // 1. Check if "Divinity Group" exists
+    const existing = await ctx.db
       .query("agencies")
       .withIndex("by_slug", (q) => q.eq("slug", "divinity-group"))
-      .first();
+      .unique();
 
-    if (existingAgency) {
-      agencyId = existingAgency._id;
-    } else {
-      agencyId = await ctx.db.insert("agencies", {
-        name: "Divinity Group",
-        slug: "divinity-group",
-        ghlWebhookUrl: "https://example.com/webhook",
-        ghlApiKey: "secret_api_key_123",
-        featuresArray: ["crm", "automations", "reporting"],
-        createdAt: Date.now(),
-      });
+    if (existing) {
+      return "Agency already exists";
     }
 
-    const existingTheme = await ctx.db
-      .query("agencyThemes")
-      .withIndex("by_agency", (q) => q.eq("agencyId", agencyId))
-      .first();
+    // 2. Create the agency
+    const agencyId = await ctx.db.insert("agencies", {
+      name: "Divinity Group",
+      slug: "divinity-group",
+      ghlWebhookUrl: "",
+      ghlApiKey: "",
+      featuresArray: ["all"],
+      createdAt: Date.now(),
+    });
 
-    if (!existingTheme) {
-      await ctx.db.insert("agencyThemes", {
-        agencyId,
-        primaryColor: "#c8a96e",
-        accentColor: "#e8c98e",
-        backgroundColor: "#0f0f1a",
-        sidebarColor: "#1a1a2e",
-        textColor: "#f0f0f0",
-        fontFamily: "Inter",
-        borderRadius: "6px",
-        dashboardTitle: "Divinity Hub",
-        updatedAt: Date.now(),
-      });
-    }
+    // 3. Create the theme
+    await ctx.db.insert("agencyThemes", {
+      agencyId,
+      primaryColor: "#000000",
+      accentColor: "#333333",
+      backgroundColor: "#ffffff",
+      sidebarColor: "#f4f4f5",
+      textColor: "#111827",
+      fontFamily: "Inter, sans-serif",
+      borderRadius: "0.5rem",
+      dashboardTitle: "Divinity Group Dashboard",
+      updatedAt: Date.now(),
+    });
 
-    return "Seed complete!";
+    return `Created Divinity Group agency with ID: ${agencyId}`;
   },
 });
 
-export const linkDevUser = mutation({
+export const promoteFirstUserToSuperAdmin = internalMutation({
   args: { clerkId: v.string() },
-  handler: async (ctx, { clerkId }) => {
-    const agency = await ctx.db
-      .query("agencies")
-      .withIndex("by_slug", (q) => q.eq("slug", "divinity-group"))
-      .first();
-
-    if (!agency) {
-      throw new Error("Seed agency not found, run seedDev first");
-    }
-
+  handler: async (ctx, args) => {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerk", (q) => q.eq("clerkId", clerkId))
-      .first();
+      .withIndex("by_clerk", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
 
-    if (user) {
-      await ctx.db.patch(user._id, { agencyId: agency._id });
-    } else {
-      await ctx.db.insert("users", {
-        clerkId,
-        agencyId: agency._id,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      });
+    if (!user) {
+      throw new Error("User not found");
     }
 
-    return "User linked to dev agency!";
+    await ctx.db.patch(user._id, {
+      role: "SUPER_ADMIN",
+      agencyId: undefined,
+    });
+
+    return "User promoted to SUPER_ADMIN";
   },
 });

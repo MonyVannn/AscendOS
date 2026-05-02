@@ -15,14 +15,18 @@ export const getTenantContext = query({
       .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
       .first();
 
-    if (!user || !user.agencyId) {
+    if (!user) {
       return null;
+    }
+
+    if (!user.agencyId) {
+      return { user, agency: null, theme: null };
     }
 
     const agency = await ctx.db.get(user.agencyId);
 
     if (!agency) {
-      return null;
+      return { user, agency: null, theme: null };
     }
 
     const theme = await ctx.db
@@ -36,10 +40,8 @@ export const getTenantContext = query({
 
     return {
       user,
-      agency: {
-        ...sanitizedAgency,
-        theme: theme || null,
-      },
+      agency: sanitizedAgency,
+      theme: theme || null,
     };
   },
 });

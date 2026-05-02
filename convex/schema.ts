@@ -29,10 +29,15 @@ export default defineSchema({
   users: defineTable({
     clerkId: v.string(),
     email: v.optional(v.string()),
+    name: v.optional(v.string()),
+    role: v.optional(v.union(v.literal("RD"), v.literal("SUPER_ADMIN"))),
+    bookingLink: v.optional(v.string()),
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
     agencyId: v.optional(v.id("agencies")),
-  }).index("by_clerk", ["clerkId"]),
+  })
+    .index("by_clerk", ["clerkId"])
+    .index("by_agency", ["agencyId"]),
 
   webhookLogs: defineTable({
     agencyId: v.id("agencies"),

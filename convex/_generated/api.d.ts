@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
 import type * as tenant from "../tenant.js";
@@ -20,6 +21,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
   http: typeof http;
   seed: typeof seed;
   tenant: typeof tenant;

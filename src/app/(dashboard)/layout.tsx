@@ -9,8 +9,15 @@ export default async function DashboardLayout({
   const tenant = await getTenantContext();
 
   if (!tenant) {
-    // Temporary redirect until /pending is implemented
     redirect("/");
+  }
+
+  if (tenant.user?.role === "SUPER_ADMIN") {
+    redirect("/admin");
+  }
+
+  if (!tenant.agency) {
+    redirect("/pending");
   }
 
   return (

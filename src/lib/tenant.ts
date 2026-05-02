@@ -22,4 +22,4 @@ export async function getTenantContext() {
 }
 
 export type TenantContext = NonNullable<Awaited<ReturnType<typeof getTenantContext>>>;
-export type AgencyPublic = TenantContext["agency"];
+export type AgencyPublic = NonNullable<TenantContext["agency"]>;

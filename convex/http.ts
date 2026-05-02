@@ -26,10 +26,12 @@ http.route({
       const eventType = evt.type;
 
       if (eventType === "user.created" || eventType === "user.updated") {
+        const name = [evt.data.first_name, evt.data.last_name].filter(Boolean).join(" ") || evt.data.username || evt.data.email_addresses?.[0]?.email_address;
         await ctx.runMutation(internal.users.upsertFromClerk, {
           data: {
             id: evt.data.id,
             email: evt.data.email_addresses?.[0]?.email_address,
+            name,
           },
         });
       }

@@ -6,11 +6,13 @@ export const upsertFromClerk = internalMutation({
     data: v.object({
       id: v.string(),
       email: v.optional(v.string()),
+      name: v.optional(v.string()),
     }),
   },
   handler: async (ctx, args) => {
     const email = args.data.email;
     const clerkId = args.data.id;
+    const name = args.data.name;
 
     const existingUser = await ctx.db
       .query("users")
@@ -20,12 +22,15 @@ export const upsertFromClerk = internalMutation({
     if (existingUser) {
       await ctx.db.patch(existingUser._id, {
         email,
+        name,
         updatedAt: Date.now(),
       });
     } else {
       await ctx.db.insert("users", {
         clerkId,
         email,
+        name,
+        role: "RD",
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
