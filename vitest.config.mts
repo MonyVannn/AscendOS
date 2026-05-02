@@ -3,7 +3,10 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: {
+      "@/convex": path.resolve(__dirname, "./convex"),
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
   test: {
     environment: "node",
