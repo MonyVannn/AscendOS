@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export default function AssignPage() {
   const { isAuthenticated } = useConvexAuth();
@@ -22,7 +23,7 @@ export default function AssignPage() {
     try {
       await assign({
         clerkId: selectedUser,
-        agencyId: selectedAgency as any,
+        agencyId: selectedAgency as Id<"agencies">,
       });
       setSelectedUser("");
       setSelectedAgency("");
