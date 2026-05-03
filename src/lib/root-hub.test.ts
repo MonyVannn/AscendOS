@@ -27,6 +27,7 @@ function makeTenant(parts: {
   return {
     theme: parts.theme ?? null,
     agency: parts.agency,
+    ghlConnected: true,
     user:
       parts.user ??
       ({

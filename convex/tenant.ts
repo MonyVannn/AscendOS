@@ -20,13 +20,13 @@ export const getTenantContext = query({
     }
 
     if (!user.agencyId) {
-      return { user, agency: null, theme: null };
+      return { user, agency: null, theme: null, ghlConnected: false };
     }
 
     const agency = await ctx.db.get(user.agencyId);
 
     if (!agency) {
-      return { user, agency: null, theme: null };
+      return { user, agency: null, theme: null, ghlConnected: false };
     }
 
     const theme = await ctx.db
@@ -42,6 +42,7 @@ export const getTenantContext = query({
       user,
       agency: sanitizedAgency,
       theme: theme || null,
+      ghlConnected: Boolean(ghlApiKey?.trim()),
     };
   },
 });

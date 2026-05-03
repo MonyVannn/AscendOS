@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTenantContext } from "@/lib/tenant";
+import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 
 export default async function DashboardLayout({
   children,
@@ -22,9 +23,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="border-b p-4">
-        <h1 className="text-xl font-bold">{tenant.agency.name}</h1>
-      </header>
+      <DashboardHeader tenant={tenant} />
       <div className="flex flex-1 overflow-hidden">
         <aside className="w-64 border-r p-4 hidden md:block">
           <nav>
