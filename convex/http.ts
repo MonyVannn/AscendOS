@@ -5,6 +5,23 @@ import { Webhook } from "svix";
 
 const http = httpRouter();
 
+type ClerkEmailAddress = {
+  email_address?: string;
+};
+
+type ClerkUserWebhookData = {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  email_addresses?: ClerkEmailAddress[];
+};
+
+type ClerkUserWebhookEvent = {
+  type: "user.created" | "user.updated" | "user.deleted";
+  data: ClerkUserWebhookData;
+};
+
 http.route({
   path: "/clerk",
   method: "POST",
@@ -20,9 +37,8 @@ http.route({
       };
 
       const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || "");
-      const evt = wh.verify(payloadString, svixHeaders) as any;
+      const evt = wh.verify(payloadString, svixHeaders) as ClerkUserWebhookEvent;
 
-      const { id } = evt.data;
       const eventType = evt.type;
 
       if (eventType === "user.created" || eventType === "user.updated") {
