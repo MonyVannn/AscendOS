@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTenantContext } from "@/lib/tenant";
-import { UserButton } from "@clerk/nextjs";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
 export default async function AdminLayout({
   children,
@@ -14,12 +14,9 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <header className="flex items-center border-b bg-white dark:bg-zinc-900 px-6 py-4 justify-between">
-        <h1 className="text-xl font-bold">Admin Console</h1>
-        <UserButton />
-      </header>
-      <main className="p-6">{children}</main>
+    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950">
+      <AdminSidebar tenant={tenant} />
+      <main className="flex-1 overflow-y-auto p-6">{children}</main>
     </div>
   );
 }

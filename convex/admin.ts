@@ -5,8 +5,9 @@ export const assignUserToAgency = mutation({
   args: {
     clerkId: v.string(),
     agencyId: v.id("agencies"),
+    role: v.union(v.literal("RD"), v.literal("SUPER_ADMIN")),
   },
-  handler: async (ctx, { clerkId, agencyId }) => {
+  handler: async (ctx, { clerkId, agencyId, role }) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
 
@@ -26,13 +27,16 @@ export const assignUserToAgency = mutation({
 
     if (!target) throw new Error("User not found");
 
-    await ctx.db.patch(target._id, { agencyId, role: "RD" });
+    await ctx.db.patch(target._id, { agencyId, role });
 
     return { success: true };
   },
 });
 
 export const listUnprovisionedUsers = query({
+  args: {
+    refreshNonce: v.optional(v.number()),
+  },
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Unauthenticated");
