@@ -20,9 +20,9 @@ http.route({
       };
 
       const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || "");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const evt = wh.verify(payloadString, svixHeaders) as any;
 
-      const { id } = evt.data;
       const eventType = evt.type;
 
       if (eventType === "user.created" || eventType === "user.updated") {

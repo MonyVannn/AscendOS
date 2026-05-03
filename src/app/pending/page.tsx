@@ -28,7 +28,7 @@ export default async function PendingPage() {
       <div className="max-w-md p-8 bg-white dark:bg-zinc-900 rounded-lg shadow-sm border border-zinc-200 dark:border-zinc-800 text-center">
         <h1 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-100">Account Pending</h1>
         <p className="text-zinc-600 dark:text-zinc-400">
-          Your account has been created, but you haven't been assigned to an agency yet. 
+          Your account has been created, but you haven&apos;t been assigned to an agency yet. 
           Please contact your administrator to complete your onboarding.
         </p>
       </div>

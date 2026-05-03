@@ -22,6 +22,7 @@ export default function AssignPage() {
     try {
       await assign({
         clerkId: selectedUser,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         agencyId: selectedAgency as any,
       });
       setSelectedUser("");

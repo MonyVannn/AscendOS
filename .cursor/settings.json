@@ -5,6 +5,9 @@
     },
     "clerk": {
       "enabled": true
+    },
+    "shadcn": {
+      "enabled": true
     }
   }
 }
