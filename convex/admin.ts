@@ -78,11 +78,31 @@ export const listAgencies = query({
 
     const agencies = await ctx.db.query("agencies").collect();
     
-    // Omit sensitive data
+    // We fetch all users and webhook logs once, then reduce in memory
+    // to avoid O(N) queries for metrics, assuming admin-level scale.
+    const allUsers = await ctx.db.query("users").collect();
+    const allWebhookLogs = await ctx.db.query("webhookLogs").collect();
+
+    // Omit sensitive data and add metrics
     return agencies.map(a => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { ghlApiKey, ghlWebhookUrl, ...safeAgency } = a;
-      return safeAgency;
+      
+      const rdCount = allUsers.filter(u => u.agencyId === a._id && u.role === "RD").length;
+      const featureCount = a.featuresArray ? a.featuresArray.length : 0;
+      const webhookCount = allWebhookLogs.filter(w => w.agencyId === a._id).length;
+      
+      // Derived status: onboarding until at least one RD is assigned
+      const status: "ACTIVE" | "ONBOARDING" =
+        rdCount >= 1 ? "ACTIVE" : "ONBOARDING";
+
+      return {
+        ...safeAgency,
+        rdCount,
+        featureCount,
+        webhookCount,
+        status,
+      };
     });
   },
 });

@@ -34,9 +34,9 @@ function makeTenant(parts: {
         _id: userId,
         _creationTime: 1700000000,
         clerkId: "user_clerk_test",
-        agencyId: null,
+        agencyId: undefined,
       } as TenantContext["user"]),
-  };
+  } as unknown as TenantContext;
 }
 
 describe("resolveRootHubPath", () => {
@@ -51,7 +51,7 @@ describe("resolveRootHubPath", () => {
         _id: userId,
         _creationTime: 1700000000,
         clerkId: "user_clerk_test",
-        agencyId: null,
+        agencyId: undefined,
         role: "SUPER_ADMIN",
       } as TenantContext["user"],
     });
@@ -65,7 +65,7 @@ describe("resolveRootHubPath", () => {
         _id: userId,
         _creationTime: 1700000000,
         clerkId: "user_clerk_test",
-        agencyId: null,
+        agencyId: undefined,
         role: "RD",
       } as TenantContext["user"],
     });
