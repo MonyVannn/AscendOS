@@ -9,6 +9,8 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as featureRegistry from "../featureRegistry.js";
+import type * as features from "../features.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
 import type * as tenant from "../tenant.js";
@@ -22,6 +24,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  featureRegistry: typeof featureRegistry;
+  features: typeof features;
   http: typeof http;
   seed: typeof seed;
   tenant: typeof tenant;

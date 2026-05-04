@@ -3,13 +3,17 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 
 export async function getTenantContext() {
-  const { getToken } = await auth();
+  const { userId, getToken } = await auth();
 
   let token: string | undefined = undefined;
-  try {
-    token = (await getToken({ template: "convex" })) ?? undefined;
-  } catch (error) {
-    console.error("Failed to fetch Clerk JWT for Convex. Ensure the 'convex' JWT template is created in the Clerk Dashboard.", error);
+  // Avoid calling getToken while signed out (already resolves null). During sign-out,
+  // Clerk may still report userId briefly while session/token mint fails — treat as anonymous.
+  if (userId) {
+    try {
+      token = (await getToken({ template: "convex" })) ?? undefined;
+    } catch {
+      token = undefined;
+    }
   }
 
   const tenant = await fetchQuery(

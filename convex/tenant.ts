@@ -37,6 +37,27 @@ export const getTenantContext = query({
     // Sanitize secrets (support legacy ghlApiKey until backfill runs)
     const effectiveToken =
       agency.ghlAccessToken?.trim() || agency.ghlApiKey?.trim() || "";
+    const agencyFeatures = await ctx.db
+      .query("agencyFeatures")
+      .withIndex("by_agency", (q) => q.eq("agencyId", agency._id))
+      .collect();
+
+    const enabledFeatures = [];
+    for (const af of agencyFeatures) {
+      if (!af.isEnabled) continue;
+      const feat = await ctx.db.get(af.featureId);
+      if (!feat || !feat.isActive) continue;
+      enabledFeatures.push({
+        key: feat.key,
+        label: af.customLabel || feat.label,
+        href: feat.href,
+        type: feat.type,
+        icon: feat.icon,
+        pillar: feat.pillar,
+        embedUrl: af.customEmbedUrl || feat.defaultEmbedUrl,
+      });
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ghlAccessToken, ghlApiKey, ghlWebhookUrl, ...sanitizedAgency } =
       agency;
@@ -46,6 +67,7 @@ export const getTenantContext = query({
       agency: sanitizedAgency,
       theme: theme || null,
       ghlConnected: Boolean(effectiveToken),
+      enabledFeatures,
     };
   },
 });

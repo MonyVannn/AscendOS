@@ -7,7 +7,7 @@ interface Agency {
   _id: string;
   name: string;
   slug: string;
-  featuresArray: string[];
+  enabledFeatures: { key: string; label: string }[];
   rdCount: number;
   featureCount: number;
   webhookCount: number;
@@ -96,14 +96,14 @@ export function AgencyCard({ agency }: { agency: Agency }) {
       {/* Chips */}
       <div className="flex flex-1 flex-col mt-6">
         <div className="flex flex-wrap gap-2">
-          {agency.featuresArray &&
-            agency.featuresArray.map((feature, i) => (
+          {agency.enabledFeatures &&
+            agency.enabledFeatures.map((feature, i) => (
               <Badge
                 key={i}
                 variant="secondary"
                 className="font-mono text-[10px] font-medium uppercase text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
               >
-                {feature}
+                {feature.label}
               </Badge>
             ))}
         </div>

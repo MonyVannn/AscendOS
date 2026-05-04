@@ -13,7 +13,6 @@ function makeSanitizedAgency(overrides: Partial<TenantContext["agency"]>): NonNu
     _creationTime: 1700000000,
     name: "Acme",
     slug: "acme",
-    featuresArray: [],
     createdAt: 1700000000,
     ...overrides,
   } as NonNullable<TenantContext["agency"]>;
@@ -23,11 +22,13 @@ function makeTenant(parts: {
   agency: TenantContext["agency"];
   user?: TenantContext["user"];
   theme?: TenantContext["theme"];
+  enabledFeatures?: TenantContext["enabledFeatures"];
 }): TenantContext {
   return {
     theme: parts.theme ?? null,
     agency: parts.agency,
     ghlConnected: true,
+    enabledFeatures: parts.enabledFeatures ?? [],
     user:
       parts.user ??
       ({

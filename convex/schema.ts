@@ -10,7 +10,6 @@ export default defineSchema({
     ghlAccessToken: v.optional(v.string()),
     /** Legacy; remove from schema after `seed:backfillAgencyGhlFields` has been run on all deployments. */
     ghlApiKey: v.optional(v.string()),
-    featuresArray: v.array(v.string()),
     createdAt: v.optional(v.number()),
   }).index("by_slug", ["slug"]),
 
@@ -47,4 +46,36 @@ export default defineSchema({
     payload: v.optional(v.any()), // maps to Json
     createdAt: v.optional(v.number()),
   }).index("by_agency", ["agencyId"]),
+
+  features: defineTable({
+    key: v.string(),
+    label: v.string(),
+    description: v.string(),
+    pillar: v.union(
+      v.literal("recruit"),
+      v.literal("train"),
+      v.literal("sell"),
+      v.literal("team"),
+      v.literal("account")
+    ),
+    type: v.union(v.literal("smart-form"), v.literal("iframe"), v.literal("page")),
+    href: v.string(),
+    defaultEmbedUrl: v.optional(v.string()),
+    icon: v.string(),
+    isActive: v.boolean(),
+    sortOrder: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_pillar", ["pillar"]),
+
+  agencyFeatures: defineTable({
+    agencyId: v.id("agencies"),
+    featureId: v.id("features"),
+    isEnabled: v.boolean(),
+    customEmbedUrl: v.optional(v.string()),
+    customLabel: v.optional(v.string()),
+    sortOrder: v.optional(v.number()),
+  })
+    .index("by_agency", ["agencyId"])
+    .index("by_agency_and_feature", ["agencyId", "featureId"]),
 });

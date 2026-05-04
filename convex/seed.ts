@@ -1,5 +1,6 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { INITIAL_FEATURES } from "./featureRegistry";
 
 /**
  * One-time: copies legacy `ghlApiKey` → `ghlAccessToken`, sets default `ghlLocationId`,
@@ -59,9 +60,18 @@ export const bootstrapAgency = internalMutation({
       ghlLocationId: "",
       ghlWebhookUrl: "",
       ghlAccessToken: "",
-      featuresArray: ["all"],
       createdAt: Date.now(),
     });
+
+    const activeFeatures = await ctx.db.query("features").filter(q => q.eq(q.field("isActive"), true)).collect();
+    for (const feat of activeFeatures) {
+      await ctx.db.insert("agencyFeatures", {
+        agencyId,
+        featureId: feat._id,
+        isEnabled: true,
+        sortOrder: feat.sortOrder,
+      });
+    }
 
     // 3. Create the theme
     await ctx.db.insert("agencyThemes", {
@@ -100,4 +110,83 @@ export const promoteFirstUserToSuperAdmin = internalMutation({
 
     return "User promoted to SUPER_ADMIN";
   },
+});
+
+export const seedFeatureRegistry = internalMutation({
+  handler: async (ctx) => {
+    let inserted = 0;
+    let updated = 0;
+    for (const feature of INITIAL_FEATURES) {
+      const existing = await ctx.db
+        .query("features")
+        .withIndex("by_key", (q) => q.eq("key", feature.key))
+        .unique();
+      if (existing) {
+        await ctx.db.patch(existing._id, feature);
+        updated++;
+      } else {
+        await ctx.db.insert("features", feature);
+        inserted++;
+      }
+    }
+    return { inserted, updated };
+  }
+});
+
+export const backfillAgencyFeaturesFromLegacy = internalMutation({
+  handler: async (ctx) => {
+    const agencies = await ctx.db.query("agencies").collect();
+    const allFeatures = await ctx.db.query("features").collect();
+    const activeFeatures = allFeatures.filter(f => f.isActive);
+    let patched = 0;
+
+    for (const agencyDoc of agencies) {
+      const agency = agencyDoc as any;
+      if (agency.featuresArray === undefined) continue;
+
+      const keys = agency.featuresArray;
+      if (keys.includes("all")) {
+        for (const feat of activeFeatures) {
+          const existingJoin = await ctx.db
+            .query("agencyFeatures")
+            .withIndex("by_agency_and_feature", (q) => 
+               q.eq("agencyId", agency._id).eq("featureId", feat._id)
+            )
+            .unique();
+          if (!existingJoin) {
+            await ctx.db.insert("agencyFeatures", {
+              agencyId: agency._id,
+              featureId: feat._id,
+              isEnabled: true,
+              sortOrder: feat.sortOrder,
+            });
+          }
+        }
+      } else {
+        for (const key of keys) {
+          const feat = allFeatures.find(f => f.key === key);
+          if (feat) {
+            const existingJoin = await ctx.db
+              .query("agencyFeatures")
+              .withIndex("by_agency_and_feature", (q) => 
+                 q.eq("agencyId", agency._id).eq("featureId", feat._id)
+              )
+              .unique();
+            if (!existingJoin) {
+              await ctx.db.insert("agencyFeatures", {
+                agencyId: agency._id,
+                featureId: feat._id,
+                isEnabled: true,
+                sortOrder: feat.sortOrder,
+              });
+            }
+          }
+        }
+      }
+
+      await ctx.db.patch(agency._id, { featuresArray: undefined } as any);
+      patched++;
+    }
+    return { patched, total: agencies.length };
+  }
 });

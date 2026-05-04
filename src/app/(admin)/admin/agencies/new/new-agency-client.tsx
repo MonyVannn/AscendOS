@@ -29,7 +29,7 @@ const defaultFormValues: NewAgencyFormInput = {
   ghlLocationId: "",
   ghlWebhookUrl: "",
   ghlAccessToken: "",
-  featuresArray: ["beast-mode-drip", "field-trainer", "resource-hub"],
+  featureKeys: ["beast-mode-drip", "field-trainer", "resource-hub"],
   theme: {
     primaryColor: "#0075de",
     accentColor: "#097fe8",
@@ -75,7 +75,7 @@ export function NewAgencyClient() {
           ghlLocationId: value.ghlLocationId,
           ghlWebhookUrl: value.ghlWebhookUrl || undefined,
           ghlAccessToken: value.ghlAccessToken,
-          featuresArray: value.featuresArray,
+          featureKeys: value.featureKeys,
           theme:
             showBrandTheme && theme
               ? {
@@ -373,7 +373,7 @@ export function NewAgencyClient() {
           }}
         </form.Field>
 
-        <form.Field name="featuresArray">
+        <form.Field name="featureKeys">
           {(field) => {
             const msg = firstValidationMessage(field.state.meta.errors);
             return (

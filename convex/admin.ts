@@ -82,6 +82,8 @@ export const listAgencies = query({
     // to avoid O(N) queries for metrics, assuming admin-level scale.
     const allUsers = await ctx.db.query("users").collect();
     const allWebhookLogs = await ctx.db.query("webhookLogs").collect();
+    const allAgencyFeatures = await ctx.db.query("agencyFeatures").collect();
+    const allFeatures = await ctx.db.query("features").collect();
 
     // Omit sensitive data and add metrics
     return agencies.map(a => {
@@ -89,8 +91,19 @@ export const listAgencies = query({
       const { ghlAccessToken, ghlApiKey, ghlWebhookUrl, ...safeAgency } = a;
       
       const rdCount = allUsers.filter(u => u.agencyId === a._id && u.role === "RD").length;
-      const featureCount = a.featuresArray ? a.featuresArray.length : 0;
+      const agencyFeatureJoins = allAgencyFeatures.filter(af => af.agencyId === a._id && af.isEnabled);
       const webhookCount = allWebhookLogs.filter(w => w.agencyId === a._id).length;
+      
+      const enabledFeatures = agencyFeatureJoins
+        .map(af => {
+          const feature = allFeatures.find(f => f._id === af.featureId);
+          if (!feature || !feature.isActive) return null;
+          return {
+            key: feature.key,
+            label: af.customLabel || feature.label,
+          };
+        })
+        .filter(Boolean) as { key: string; label: string }[];
       
       // Derived status: onboarding until at least one RD is assigned
       const status: "ACTIVE" | "ONBOARDING" =
@@ -99,9 +112,10 @@ export const listAgencies = query({
       return {
         ...safeAgency,
         rdCount,
-        featureCount,
+        featureCount: enabledFeatures.length,
         webhookCount,
         status,
+        enabledFeatures,
       };
     });
   },
@@ -125,7 +139,7 @@ export const createAgency = mutation({
     ghlLocationId: v.string(),
     ghlWebhookUrl: v.optional(v.string()),
     ghlAccessToken: v.string(),
-    featuresArray: v.array(v.string()),
+    featureKeys: v.array(v.string()),
     theme: v.optional(v.object({
       primaryColor: v.string(),
       accentColor: v.string(),
@@ -161,15 +175,31 @@ export const createAgency = mutation({
       throw new Error("Agency slug already exists");
     }
 
+    const allFeatures = await ctx.db.query("features").collect();
+    const validFeatures = [];
+    for (const key of args.featureKeys) {
+      const feat = allFeatures.find(f => f.key === key);
+      if (!feat) throw new Error(`Unknown feature key: ${key}`);
+      validFeatures.push({ id: feat._id, sortOrder: feat.sortOrder });
+    }
+
     const agencyId = await ctx.db.insert("agencies", {
       name: args.name,
       slug: args.slug,
       ghlLocationId: args.ghlLocationId,
       ghlWebhookUrl: args.ghlWebhookUrl,
       ghlAccessToken: args.ghlAccessToken,
-      featuresArray: args.featuresArray,
       createdAt: Date.now(),
     });
+
+    for (const feat of validFeatures) {
+      await ctx.db.insert("agencyFeatures", {
+        agencyId,
+        featureId: feat.id,
+        isEnabled: true,
+        sortOrder: feat.sortOrder,
+      });
+    }
 
     if (args.theme) {
       await ctx.db.insert("agencyThemes", {
