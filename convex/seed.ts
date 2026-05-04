@@ -1,6 +1,45 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
+/**
+ * One-time: copies legacy `ghlApiKey` → `ghlAccessToken`, sets default `ghlLocationId`,
+ * removes `ghlApiKey`. Run from project root:
+ * `npx convex run seed:backfillAgencyGhlFields`
+ */
+export const backfillAgencyGhlFields = internalMutation({
+  handler: async (ctx) => {
+    const agencies = await ctx.db.query("agencies").collect();
+    let patched = 0;
+    for (const a of agencies) {
+      const legacyKey = a.ghlApiKey;
+      const patch: {
+        ghlLocationId?: string;
+        ghlAccessToken?: string;
+        ghlApiKey?: undefined;
+      } = {};
+
+      if (a.ghlLocationId === undefined) {
+        patch.ghlLocationId = "";
+      }
+
+      if (legacyKey !== undefined) {
+        if (!a.ghlAccessToken?.trim()) {
+          patch.ghlAccessToken = legacyKey;
+        }
+        patch.ghlApiKey = undefined;
+      } else if (a.ghlAccessToken === undefined) {
+        patch.ghlAccessToken = "";
+      }
+
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(a._id, patch);
+        patched++;
+      }
+    }
+    return { patched, total: agencies.length };
+  },
+});
+
 export const bootstrapAgency = internalMutation({
   handler: async (ctx) => {
     // 1. Check if "Divinity Group" exists
@@ -17,8 +56,9 @@ export const bootstrapAgency = internalMutation({
     const agencyId = await ctx.db.insert("agencies", {
       name: "Divinity Group",
       slug: "divinity-group",
+      ghlLocationId: "",
       ghlWebhookUrl: "",
-      ghlApiKey: "",
+      ghlAccessToken: "",
       featuresArray: ["all"],
       createdAt: Date.now(),
     });

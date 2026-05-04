@@ -34,15 +34,18 @@ export const getTenantContext = query({
       .withIndex("by_agency", (q) => q.eq("agencyId", agency._id))
       .first();
 
-    // Sanitize secrets
+    // Sanitize secrets (support legacy ghlApiKey until backfill runs)
+    const effectiveToken =
+      agency.ghlAccessToken?.trim() || agency.ghlApiKey?.trim() || "";
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { ghlApiKey, ghlWebhookUrl, ...sanitizedAgency } = agency;
+    const { ghlAccessToken, ghlApiKey, ghlWebhookUrl, ...sanitizedAgency } =
+      agency;
 
     return {
       user,
       agency: sanitizedAgency,
       theme: theme || null,
-      ghlConnected: Boolean(ghlApiKey?.trim()),
+      ghlConnected: Boolean(effectiveToken),
     };
   },
 });

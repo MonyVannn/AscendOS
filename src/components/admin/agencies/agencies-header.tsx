@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -18,13 +19,15 @@ export function AgenciesHeader() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            variant="default"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            + New Agency
-          </Button>
+          <Link href="/admin/agencies/new">
+            <Button
+              type="button"
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              + New Agency
+            </Button>
+          </Link>
         </div>
       </div>
       <Separator className="mt-4 mb-6" />

@@ -23,3 +23,13 @@ When you deploy a new instance, you need to create the first agency and the firs
    *Note: This mutation sets the user as a global Super Admin and removes any agency association, as Super Admins oversee all agencies.*
 
 From this point forward, the Super Admin can use the `/admin/assign` page to provision any subsequent users that sign up. Additional Super Admins can be promoted manually using the same mutation.
+
+## Agency GHL field migration (legacy data)
+
+If `convex dev` fails with schema errors on `agencies` (e.g. documents still using `ghlApiKey` instead of `ghlAccessToken` / `ghlLocationId`), push the current schema, then run the internal backfill once:
+
+```bash
+npx convex run seed:backfillAgencyGhlFields
+```
+
+After it reports success, restart `npx convex dev` if needed. This copies `ghlApiKey` → `ghlAccessToken`, sets `ghlLocationId` to `""` when missing, and removes the legacy field.

@@ -5,8 +5,11 @@ export default defineSchema({
   agencies: defineTable({
     name: v.string(),
     slug: v.string(),
-    ghlWebhookUrl: v.string(),
-    ghlApiKey: v.string(),
+    ghlLocationId: v.optional(v.string()),
+    ghlWebhookUrl: v.optional(v.string()),
+    ghlAccessToken: v.optional(v.string()),
+    /** Legacy; remove from schema after `seed:backfillAgencyGhlFields` has been run on all deployments. */
+    ghlApiKey: v.optional(v.string()),
     featuresArray: v.array(v.string()),
     createdAt: v.optional(v.number()),
   }).index("by_slug", ["slug"]),
