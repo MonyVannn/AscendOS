@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getTenantContext } from "@/lib/tenant";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
+import packageJson from "../../../package.json";
 
 export default async function DashboardLayout({
   children,
@@ -25,18 +27,8 @@ export default async function DashboardLayout({
     <div className="flex h-screen flex-col">
       <DashboardHeader tenant={tenant} />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 border-r p-4 hidden md:block">
-          <nav>
-            <ul>
-              <li>
-                <a href="/dashboard" className="block p-2 hover:bg-gray-100 rounded">
-                  Dashboard
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </aside>
-        <main className="flex-1 overflow-y-auto p-4">
+        <DashboardSidebar tenant={tenant} appVersion={packageJson.version} />
+        <main className="flex-1 overflow-y-auto p-4 bg-muted/20">
           {children}
         </main>
       </div>

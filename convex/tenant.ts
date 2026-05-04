@@ -55,8 +55,11 @@ export const getTenantContext = query({
         icon: feat.icon,
         pillar: feat.pillar,
         embedUrl: af.customEmbedUrl || feat.defaultEmbedUrl,
+        sortOrder: af.sortOrder ?? feat.sortOrder,
       });
     }
+
+    enabledFeatures.sort((a, b) => a.sortOrder - b.sortOrder);
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ghlAccessToken, ghlApiKey, ghlWebhookUrl, ...sanitizedAgency } =

@@ -419,6 +419,9 @@ export function NewAgencyClient() {
                     );
                   })}
                 </div>
+                <p className="text-[13px] text-zinc-500 mt-1">
+                  Note: The <strong className="font-semibold text-zinc-700">resource-hub</strong> feature is pinned and always visible to RDs on the sidebar. Toggling it here only controls if it can be customized.
+                </p>
               </div>
             );
           }}
