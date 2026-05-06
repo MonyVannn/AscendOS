@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useUser, SignOutButton } from "@clerk/nextjs";
-import { Search, Bell, HelpCircle, ChevronDown } from "lucide-react";
+import { Bell, ChevronDown, HelpCircle, Menu, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,15 +16,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { TenantContext } from "@/lib/tenant";
 
 interface DashboardHeaderProps {
   tenant: NonNullable<TenantContext>;
+  appVersion: string;
 }
 
-export function DashboardHeader({ tenant }: DashboardHeaderProps) {
+export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
   const { user: clerkUser, isLoaded } = useUser();
   const { agency, theme, ghlConnected, user: dbUser } = tenant;
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const title = agency?.name;
   const subtitle = theme?.dashboardTitle || `${agency?.name} · Admin Hub`;
@@ -42,22 +51,57 @@ export function DashboardHeader({ tenant }: DashboardHeaderProps) {
 
   return (
     <header className="border-b bg-background px-4 md:px-8 py-3 flex items-center justify-between min-h-[64px]">
-      {/* Left: Brand */}
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground overflow-hidden font-bold">
-          {theme?.logoUrl ? (
-            <img
-              src={theme.logoUrl}
-              alt={`${agency.name} logo`}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            agency?.name?.substring(0, 2).toUpperCase()
-          )}
-        </div>
-        <div>
-          <h1 className="text-sm font-semibold leading-tight">{title}</h1>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+      {/* Left: Brand + mobile nav */}
+      <div className="flex items-center gap-2 min-w-0">
+        <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+          <SheetTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="md:hidden shrink-0 text-muted-foreground"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            showClose
+            className="flex h-full max-h-[100dvh] flex-col gap-0 p-0 text-white shadow-xl ring-1 ring-white/5"
+            style={{
+              backgroundColor: theme?.sidebarColor || "#1c1917",
+              borderColor: "rgba(255,255,255,0.05)",
+            }}
+          >
+            <SheetTitle className="sr-only">Primary navigation</SheetTitle>
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-10">
+              <DashboardNav
+                tenant={tenant}
+                appVersion={appVersion}
+                onLinkNavigate={() => setMobileNavOpen(false)}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary font-bold text-primary-foreground">
+            {theme?.logoUrl ? (
+              <img
+                src={theme.logoUrl}
+                alt={`${agency?.name ?? "Agency"} logo`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              agency?.name?.substring(0, 2).toUpperCase()
+            )}
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold leading-tight">
+              {title}
+            </h1>
+            <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+          </div>
         </div>
       </div>
 

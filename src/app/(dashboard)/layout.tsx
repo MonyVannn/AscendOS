@@ -25,7 +25,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex h-screen flex-col">
-      <DashboardHeader tenant={tenant} />
+      <DashboardHeader tenant={tenant} appVersion={packageJson.version} />
       <div className="flex flex-1 overflow-hidden">
         <DashboardSidebar tenant={tenant} appVersion={packageJson.version} />
         <main className="flex-1 overflow-y-auto p-4 bg-muted/20">
