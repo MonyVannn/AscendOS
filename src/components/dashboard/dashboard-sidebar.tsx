@@ -50,17 +50,22 @@ const PILLAR_LABELS: Record<string, string> = {
 // Fixed order of pillars
 const PILLAR_ORDER = ["recruit", "train", "sell", "team", "account"];
 
-export function DashboardSidebar({ tenant, appVersion }: DashboardSidebarProps) {
+export function DashboardSidebar({
+  tenant,
+  appVersion,
+}: DashboardSidebarProps) {
   const pathname = usePathname();
   const { theme, enabledFeatures } = tenant;
 
   // Filter out resource-hub from dynamic features since we hardcode it
-  const dynamicFeatures = enabledFeatures.filter((f) => f.key !== "resource-hub");
+  const dynamicFeatures = enabledFeatures?.filter(
+    (f) => f.key !== "resource-hub",
+  );
 
   // Group dynamic features by pillar
   const featuresByPillar = React.useMemo(() => {
     const grouped: Record<string, typeof dynamicFeatures> = {};
-    for (const feature of dynamicFeatures) {
+    for (const feature of dynamicFeatures ?? []) {
       const pillar = feature.pillar;
       if (!grouped[pillar]) grouped[pillar] = [];
       grouped[pillar].push(feature);
@@ -83,7 +88,9 @@ export function DashboardSidebar({ tenant, appVersion }: DashboardSidebarProps) 
         }`}
         aria-current={isActive ? "page" : undefined}
       >
-        <Icon className={`h-4 w-4 ${isActive ? "text-blue-500" : "text-zinc-500"}`} />
+        <Icon
+          className={`h-4 w-4 ${isActive ? "text-blue-500" : "text-zinc-500"}`}
+        />
         {name}
       </Link>
     );
@@ -112,7 +119,11 @@ export function DashboardSidebar({ tenant, appVersion }: DashboardSidebarProps) 
         {renderSectionHeader("WORKSPACE")}
         <nav className="space-y-1">
           {renderLink("Dashboard", "/dashboard", "home")}
-          {renderLink("Resource Hub", "/dashboard/account/resource-hub", "bookOpen")}
+          {renderLink(
+            "Resource Hub",
+            "/dashboard/account/resource-hub",
+            "bookOpen",
+          )}
         </nav>
 
         {/* Dynamic Pillars */}
@@ -125,7 +136,7 @@ export function DashboardSidebar({ tenant, appVersion }: DashboardSidebarProps) 
               {renderSectionHeader(PILLAR_LABELS[pillar] || pillar)}
               <nav className="space-y-1">
                 {features.map((feature) =>
-                  renderLink(feature.label, feature.href, feature.icon)
+                  renderLink(feature.label, feature.href, feature.icon),
                 )}
               </nav>
             </div>
@@ -136,7 +147,11 @@ export function DashboardSidebar({ tenant, appVersion }: DashboardSidebarProps) 
         {renderSectionHeader("INSIGHTS")}
         <nav className="space-y-1">
           {renderLink("Activity log", "/dashboard/activity-log", "activity")}
-          {renderLink("Scheduled drips", "/dashboard/scheduled-drips", "calendar")}
+          {renderLink(
+            "Scheduled drips",
+            "/dashboard/scheduled-drips",
+            "calendar",
+          )}
         </nav>
       </div>
 
