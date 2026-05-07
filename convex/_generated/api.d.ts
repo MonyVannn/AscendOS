@@ -13,6 +13,7 @@ import type * as featureRegistry from "../featureRegistry.js";
 import type * as features from "../features.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
+import type * as settings from "../settings.js";
 import type * as tenant from "../tenant.js";
 import type * as users from "../users.js";
 
@@ -28,6 +29,7 @@ declare const fullApi: ApiFromModules<{
   features: typeof features;
   http: typeof http;
   seed: typeof seed;
+  settings: typeof settings;
   tenant: typeof tenant;
   users: typeof users;
 }>;

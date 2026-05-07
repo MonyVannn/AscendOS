@@ -147,7 +147,7 @@ export function DashboardNav({
         style={{ borderColor: "rgba(255,255,255,0.05)" }}
       >
         <nav className="space-y-1 mb-4">
-          {renderLink("Hub settings", "/dashboard/hub-settings", "settings")}
+          {renderLink("Settings", "/dashboard/settings", "settings")}
         </nav>
         <div className="px-3 text-[11px] text-zinc-500">
           AscendOS · v{appVersion}

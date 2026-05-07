@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getTenantContext } from "@/lib/tenant";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
+import { getAgencyThemeCssVars } from "@/lib/agency-theme-css-vars";
 import packageJson from "../../../package.json";
 
 export default async function DashboardLayout({
@@ -23,8 +24,10 @@ export default async function DashboardLayout({
     redirect("/pending");
   }
 
+  const themeVars = getAgencyThemeCssVars(tenant.theme);
+
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col" style={themeVars}>
       <DashboardHeader tenant={tenant} appVersion={packageJson.version} />
       <div className="flex flex-1 overflow-hidden">
         <DashboardSidebar tenant={tenant} appVersion={packageJson.version} />
@@ -35,3 +38,4 @@ export default async function DashboardLayout({
     </div>
   );
 }
+

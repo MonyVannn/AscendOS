@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useUser, SignOutButton } from "@clerk/nextjs";
 import { Bell, ChevronDown, HelpCircle, Menu, Search } from "lucide-react";
 
@@ -36,7 +37,7 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
 
   const title = agency?.name;
-  const subtitle = theme?.dashboardTitle || `${agency?.name} · Admin Hub`;
+  const subtitle = `${agency?.name} · Admin Hub`;
 
   // Platform specific shortcut hint
   const [shortcutPrefix, setShortcutPrefix] = React.useState("⌘");
@@ -169,13 +170,16 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
                     alt={clerkUser.fullName || ""}
                   />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {clerkUser.firstName?.charAt(0) || ""}
-                    {clerkUser.lastName?.charAt(0) || ""}
+                    {dbUser.name ? (
+                      dbUser.name.split(" ").map(n => n.charAt(0)).slice(0, 2).join("").toUpperCase()
+                    ) : (
+                      <>{clerkUser.firstName?.charAt(0) || ""}{clerkUser.lastName?.charAt(0) || ""}</>
+                    )}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:flex flex-col items-start text-left">
                   <span className="text-sm font-medium leading-none">
-                    {clerkUser.fullName ||
+                    {dbUser.name || clerkUser.fullName ||
                       clerkUser.primaryEmailAddress?.emailAddress}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -193,7 +197,7 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {clerkUser.fullName}
+                    {dbUser.name || clerkUser.fullName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {clerkUser.primaryEmailAddress?.emailAddress}
@@ -201,8 +205,12 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings/profile" className="cursor-pointer w-full">Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings/appearance" className="cursor-pointer w-full">Settings</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <SignOutButton>
                 <DropdownMenuItem className="cursor-pointer">
