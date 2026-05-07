@@ -1,8 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { cache } from "react";
 
-export async function getTenantContext() {
+export const getTenantContext = cache(async () => {
   const { userId, getToken } = await auth();
 
   let token: string | undefined = undefined;
@@ -23,7 +24,7 @@ export async function getTenantContext() {
   );
 
   return tenant;
-}
+});
 
 export type TenantContext = NonNullable<Awaited<ReturnType<typeof getTenantContext>>>;
 export type AgencyPublic = NonNullable<TenantContext["agency"]>;

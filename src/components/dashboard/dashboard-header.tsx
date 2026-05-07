@@ -69,11 +69,7 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
           <SheetContent
             side="left"
             showClose
-            className="flex h-full max-h-[100dvh] flex-col gap-0 p-0 text-white shadow-xl ring-1 ring-white/5"
-            style={{
-              backgroundColor: theme?.sidebarColor || "#1c1917",
-              borderColor: "rgba(255,255,255,0.05)",
-            }}
+            className="flex h-full max-h-[100dvh] flex-col gap-0 p-0 shadow-xl ring-1 ring-white/5 bg-sidebar text-sidebar-foreground border-sidebar-border"
           >
             <SheetTitle className="sr-only">Primary navigation</SheetTitle>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-10">

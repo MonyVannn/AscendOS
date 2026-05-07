@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useSettings } from "./settings-context";
+import { getFontStack } from "@/lib/agency-theme-css-vars";
 
 interface SettingsLivePreviewProps {
   isProfile: boolean;
@@ -19,9 +20,7 @@ export function SettingsLivePreview({ isProfile }: SettingsLivePreviewProps) {
       <div 
         className="rounded-xl border shadow-sm overflow-hidden bg-white flex flex-col"
         style={{ 
-          fontFamily: theme.fontFamily.toLowerCase().includes("sans") 
-            ? "var(--font-sans), sans-serif" 
-            : theme.fontFamily,
+          fontFamily: getFontStack(theme.fontFamily),
           borderRadius: theme.borderRadius === "9999px" ? "1rem" : theme.borderRadius // Cap pill radius for outer container
         }}
       >
@@ -46,7 +45,7 @@ export function SettingsLivePreview({ isProfile }: SettingsLivePreviewProps) {
                 {theme.logoUrl ? (
                   <img src={theme.logoUrl} alt="Logo" className="w-full h-full object-cover rounded" />
                 ) : (
-                  tenant.agency.name.substring(0, 2).toUpperCase()
+                  tenant.agency?.name?.substring(0, 2).toUpperCase() || "AG"
                 )}
               </div>
               <div className="text-xs font-semibold truncate opacity-90">{tenant.agency?.name}</div>

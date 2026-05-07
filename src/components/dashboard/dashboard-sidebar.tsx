@@ -14,16 +14,8 @@ export function DashboardSidebar({
   tenant,
   appVersion,
 }: DashboardSidebarProps) {
-  const { theme } = tenant;
-
   return (
-    <aside
-      className="hidden md:flex w-64 flex-col border-r shrink-0"
-      style={{
-        backgroundColor: theme?.sidebarColor || "#1c1917",
-        borderColor: "rgba(255,255,255,0.05)",
-      }}
-    >
+    <aside className="hidden md:flex w-64 flex-col border-r shrink-0 bg-sidebar text-sidebar-foreground border-sidebar-border">
       <DashboardNav tenant={tenant} appVersion={appVersion} />
     </aside>
   );

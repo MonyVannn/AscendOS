@@ -80,6 +80,19 @@ export const updateMyAgencyTheme = mutation({
       updatedAt: Date.now(),
     });
 
-    return { success: true };
+    return { 
+      success: true,
+      theme: {
+        primaryColor: args.primaryColor,
+        accentColor: args.accentColor,
+        backgroundColor: args.backgroundColor,
+        sidebarColor: args.sidebarColor,
+        textColor: args.textColor,
+        logoUrl: args.logoUrl,
+        faviconUrl: args.faviconUrl,
+        fontFamily: args.fontFamily,
+        borderRadius: args.borderRadius,
+      }
+    };
   },
 });

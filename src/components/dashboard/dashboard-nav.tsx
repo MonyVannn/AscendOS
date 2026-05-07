@@ -83,13 +83,13 @@ export function DashboardNav({
         onClick={() => onLinkNavigate?.()}
         className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
           isActive
-            ? "bg-zinc-800/80 text-white"
-            : "text-zinc-400 hover:bg-zinc-800/40 hover:text-zinc-200"
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
         }`}
         aria-current={isActive ? "page" : undefined}
       >
         <Icon
-          className={`h-4 w-4 ${isActive ? "text-blue-500" : "text-zinc-500"}`}
+          className={`h-4 w-4 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/50"}`}
         />
         {name}
       </Link>
@@ -97,7 +97,7 @@ export function DashboardNav({
   };
 
   const renderSectionHeader = (title: string) => (
-    <div className="px-3 mb-2 mt-6 first:mt-0 text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+    <div className="px-3 mb-2 mt-6 first:mt-0 text-[11px] font-bold text-sidebar-foreground/50 uppercase tracking-wider">
       {title}
     </div>
   );
@@ -142,14 +142,11 @@ export function DashboardNav({
         </nav>
       </div>
 
-      <div
-        className="p-4 mt-auto border-t shrink-0"
-        style={{ borderColor: "rgba(255,255,255,0.05)" }}
-      >
+      <div className="p-4 mt-auto border-t border-sidebar-border shrink-0">
         <nav className="space-y-1 mb-4">
           {renderLink("Settings", "/dashboard/settings", "settings")}
         </nav>
-        <div className="px-3 text-[11px] text-zinc-500">
+        <div className="px-3 text-[11px] text-sidebar-foreground/50">
           AscendOS · v{appVersion}
         </div>
       </div>

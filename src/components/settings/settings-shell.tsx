@@ -10,6 +10,7 @@ import { SettingsLivePreview } from "./settings-live-preview";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { invalidateRdProfileCache } from "@/lib/rd-profile-cache";
+import { buildAgencyThemeStyle } from "@/lib/agency-theme-css-vars";
 
 interface SettingsShellProps {
   tenant: NonNullable<TenantContext>;
@@ -78,7 +79,7 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
       }
       
       if (isThemeDirty) {
-        await updateMyAgencyTheme({
+        const result = await updateMyAgencyTheme({
           primaryColor: draft.theme.primaryColor,
           accentColor: draft.theme.accentColor,
           backgroundColor: draft.theme.backgroundColor,
@@ -89,6 +90,16 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
           fontFamily: draft.theme.fontFamily,
           borderRadius: draft.theme.borderRadius,
         });
+
+        if (result.theme && tenant?.agency) {
+          try {
+            const cacheKey = `theme:${tenant.agency._id}`;
+            const themeStyle = buildAgencyThemeStyle(result.theme, "RD");
+            localStorage.setItem(cacheKey, JSON.stringify(themeStyle));
+          } catch (e) {
+            // Ignore localStorage errors
+          }
+        }
       }
 
       setInitialDraft(draft);
