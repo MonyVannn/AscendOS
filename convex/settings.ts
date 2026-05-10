@@ -36,6 +36,79 @@ export const updateMyProfile = mutation({
   },
 });
 
+export const generateThemeAssetUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!caller) throw new Error("User not found");
+    if (!caller.agencyId) throw new Error("No agency associated with your profile");
+
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const finalizeThemeAssetUpload = mutation({
+  args: {
+    kind: v.union(v.literal("logo"), v.literal("favicon")),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!caller) throw new Error("User not found");
+    if (!caller.agencyId) throw new Error("No agency associated with your profile");
+
+    const theme = await ctx.db
+      .query("agencyThemes")
+      .withIndex("by_agency", (q) => q.eq("agencyId", caller.agencyId!))
+      .unique();
+
+    if (!theme) throw new Error("Agency theme not found");
+
+    // Validate file type
+    const metadata = await ctx.db.system.get("_storage", args.storageId);
+    if (!metadata) throw new Error("File not found");
+
+    const validTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/svg+xml",
+      "image/webp",
+      "image/x-icon",
+      "image/vnd.microsoft.icon"
+    ];
+
+    if (!metadata.contentType || !validTypes.includes(metadata.contentType)) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error("Invalid file type. Must be an image.");
+    }
+
+    // Max size 2MB
+    if (metadata.size > 2 * 1024 * 1024) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error("File too large. Maximum size is 2MB.");
+    }
+
+    const url = await ctx.storage.getUrl(args.storageId);
+    if (!url) throw new Error("Failed to get URL for uploaded file");
+
+    return { url, storageId: args.storageId };
+  },
+});
+
 export const updateMyAgencyTheme = mutation({
   args: {
     primaryColor: v.string(),
@@ -66,7 +139,9 @@ export const updateMyAgencyTheme = mutation({
     primaryForeground: v.optional(v.string()),
 
     logoUrl: v.optional(v.string()),
+    logoStorageId: v.optional(v.id("_storage")),
     faviconUrl: v.optional(v.string()),
+    faviconStorageId: v.optional(v.id("_storage")),
     fontFamily: v.string(),
     borderRadius: v.string(),
   },
@@ -88,6 +163,22 @@ export const updateMyAgencyTheme = mutation({
       .unique();
 
     if (!theme) throw new Error("Agency theme not found");
+
+    let newLogoStorageId = theme.logoStorageId;
+    if (args.logoUrl !== theme.logoUrl) {
+      if (theme.logoStorageId && theme.logoStorageId !== args.logoStorageId) {
+        await ctx.storage.delete(theme.logoStorageId);
+      }
+      newLogoStorageId = args.logoStorageId;
+    }
+
+    let newFaviconStorageId = theme.faviconStorageId;
+    if (args.faviconUrl !== theme.faviconUrl) {
+      if (theme.faviconStorageId && theme.faviconStorageId !== args.faviconStorageId) {
+        await ctx.storage.delete(theme.faviconStorageId);
+      }
+      newFaviconStorageId = args.faviconStorageId;
+    }
 
     const patch = {
       primaryColor: args.primaryColor,
@@ -114,7 +205,9 @@ export const updateMyAgencyTheme = mutation({
       primaryForeground: args.primaryForeground,
 
       logoUrl: args.logoUrl,
+      logoStorageId: newLogoStorageId,
       faviconUrl: args.faviconUrl,
+      faviconStorageId: newFaviconStorageId,
       fontFamily: args.fontFamily,
       borderRadius: args.borderRadius,
       updatedAt: Date.now(),

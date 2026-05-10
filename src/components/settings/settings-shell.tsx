@@ -67,7 +67,9 @@ function getInitialDraft(tenant: NonNullable<TenantContext>): SettingsDraft {
       primaryForeground: resolved.primaryForeground,
 
       logoUrl: tenant.theme?.logoUrl || "",
+      logoStorageId: (tenant.theme?.logoStorageId as string) || undefined,
       faviconUrl: tenant.theme?.faviconUrl || "",
+      faviconStorageId: (tenant.theme?.faviconStorageId as string) || undefined,
       fontFamily: tenant.theme?.fontFamily || "Inter",
       borderRadius: tenant.theme?.borderRadius || "8px",
     },
@@ -141,7 +143,9 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
           primaryForeground: draft.theme.primaryForeground || undefined,
 
           logoUrl: draft.theme.logoUrl || undefined,
+          logoStorageId: (draft.theme.logoStorageId as string) || undefined,
           faviconUrl: draft.theme.faviconUrl || undefined,
+          faviconStorageId: (draft.theme.faviconStorageId as string) || undefined,
           fontFamily: draft.theme.fontFamily,
           borderRadius: draft.theme.borderRadius,
         });
@@ -151,7 +155,7 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
             const cacheKey = `theme:${tenant.agency._id}`;
             const themeStyle = buildAgencyThemeStyle(result.theme, "RD");
             localStorage.setItem(cacheKey, JSON.stringify(themeStyle));
-          } catch (e) {
+          } catch {
             // Ignore localStorage errors
           }
         }
@@ -191,7 +195,7 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
   const isProfile = pathname.includes("/settings/profile");
   
   return (
-    <SettingsContext.Provider value={{ draft, setDraft, isDirty, isSaving, saveDraft, discardDraft, tenant }}>
+    <SettingsContext.Provider value={{ draft, setDraft, setInitialDraft, isDirty, isSaving, saveDraft, discardDraft, tenant }}>
       <div className="flex flex-col h-full  dark:bg-zinc-950  overflow-hidden relative">
         
         {/* Top Bar */}

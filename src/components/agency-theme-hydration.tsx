@@ -32,7 +32,7 @@ export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
           });
         }
       }
-    } catch (e) {
+    } catch {
       // Ignore localStorage errors
     }
   }, [tenant]);
@@ -81,11 +81,24 @@ export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
     if (Object.keys(themeVars).length > 0) {
       try {
         localStorage.setItem(cacheKey, JSON.stringify(themeVars));
-      } catch (e) {
+      } catch {
         // Ignore localStorage errors
       }
     }
   }, [tenant]);
+
+  // Update favicon if the tenant has a custom one
+  useEffect(() => {
+    if (!tenant?.agency || tenant.user?.role !== "RD" || !tenant.theme?.faviconUrl) return;
+
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+    link.href = tenant.theme.faviconUrl;
+  }, [tenant?.theme?.faviconUrl, tenant?.agency, tenant?.user?.role]);
 
   return null;
 }

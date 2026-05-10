@@ -13,7 +13,6 @@ import {
   Webhook,
   Settings,
   FileText,
-  ChevronDown,
   LogOut,
   User,
 } from "lucide-react";

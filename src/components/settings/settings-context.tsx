@@ -33,7 +33,9 @@ export interface SettingsDraft {
     primaryForeground?: string;
 
     logoUrl?: string;
+    logoStorageId?: string;
     faviconUrl?: string;
+    faviconStorageId?: string;
     fontFamily: string;
     borderRadius: string;
   };
@@ -42,6 +44,7 @@ export interface SettingsDraft {
 interface SettingsContextValue {
   draft: SettingsDraft;
   setDraft: React.Dispatch<React.SetStateAction<SettingsDraft>>;
+  setInitialDraft: React.Dispatch<React.SetStateAction<SettingsDraft>>;
   isDirty: boolean;
   isSaving: boolean;
   saveDraft: () => Promise<void>;

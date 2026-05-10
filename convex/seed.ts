@@ -210,7 +210,7 @@ export const backfillAgencyFeaturesFromLegacy = internalMutation({
     let patched = 0;
 
     for (const agencyDoc of agencies) {
-      const agency = agencyDoc as any;
+      const agency = agencyDoc as typeof agencyDoc & { featuresArray?: string[] };
       if (agency.featuresArray === undefined) continue;
 
       const keys = agency.featuresArray;
@@ -253,7 +253,7 @@ export const backfillAgencyFeaturesFromLegacy = internalMutation({
         }
       }
 
-      await ctx.db.patch(agency._id, { featuresArray: undefined } as any);
+      await ctx.db.patch(agency._id, { featuresArray: undefined } as Record<string, undefined>);
       patched++;
     }
     return { patched, total: agencies.length };

@@ -84,6 +84,7 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-primary font-bold text-primary-foreground">
             {theme?.logoUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={theme.logoUrl}
                 alt={`${agency?.name ?? "Agency"} logo`}

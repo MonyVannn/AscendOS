@@ -43,6 +43,7 @@ export function SettingsLivePreview({ isProfile }: SettingsLivePreviewProps) {
                 style={{ backgroundColor: theme.primaryColor, color: theme.primaryForeground }}
               >
                 {theme.logoUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
                   <img src={theme.logoUrl} alt="Logo" className="w-full h-full object-cover rounded" />
                 ) : (
                   tenant.agency?.name?.substring(0, 2).toUpperCase() || "AG"

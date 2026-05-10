@@ -26,7 +26,7 @@ export function AgenciesPageClient() {
       <AgenciesHeader />
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {agencies.map((agency) => (
-          <AgencyCard key={agency._id} agency={agency as any} />
+          <AgencyCard key={agency._id} agency={agency as React.ComponentProps<typeof AgencyCard>["agency"]} />
         ))}
       </div>
     </div>

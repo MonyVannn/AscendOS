@@ -250,7 +250,9 @@ export const createAgency = mutation({
         mutedText: "#71717a",
 
         logoUrl: undefined,
+        logoStorageId: undefined,
         faviconUrl: undefined,
+        faviconStorageId: undefined,
         fontFamily: "Inter",
         borderRadius: "8px",
         dashboardTitle: args.name,

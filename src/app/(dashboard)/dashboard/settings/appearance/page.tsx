@@ -3,6 +3,101 @@
 import * as React from "react";
 import { useSettings } from "@/components/settings/settings-context";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Upload, Loader2 } from "lucide-react";
+
+function AssetUpload({
+  label,
+  kind,
+  value,
+  onChange,
+  placeholder,
+  helpText
+}: {
+  label: string;
+  kind: "logo" | "favicon";
+  value: string;
+  onChange: (url: string, storageId?: string) => void;
+  placeholder: string;
+  helpText: string;
+}) {
+  const generateUploadUrl = useMutation(api.settings.generateThemeAssetUploadUrl);
+  const finalizeUpload = useMutation(api.settings.finalizeThemeAssetUpload);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+
+      if (!result.ok) {
+        throw new Error("Failed to upload file");
+      }
+
+      const { storageId } = await result.json();
+
+      const { url } = await finalizeUpload({ kind, storageId });
+      
+      // Pass both the URL and the storageId to the parent so it can be saved
+      onChange(url, storageId);
+    } catch (error) {
+      console.error("Upload failed", error);
+      alert(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-semibold">{label}</label>
+      <div className="flex gap-2 max-w-md">
+        <div className="relative flex-1">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">↑</span>
+          <Input 
+            value={value}
+            onChange={(e) => onChange(e.target.value, undefined)}
+            placeholder={placeholder}
+            className="pl-8"
+            disabled={isUploading}
+          />
+        </div>
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept={kind === "favicon" ? "image/x-icon,image/vnd.microsoft.icon,image/png" : "image/png,image/jpeg,image/svg+xml,image/webp"}
+          onChange={handleFileChange}
+        />
+        <Button 
+          type="button" 
+          variant="outline" 
+          disabled={isUploading}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          <span className="sr-only">Upload</span>
+        </Button>
+      </div>
+      <p className="text-xs text-zinc-500">{helpText}</p>
+    </div>
+  );
+}
 
 export default function AppearanceSettingsPage() {
   const { draft, setDraft } = useSettings();
@@ -26,33 +121,23 @@ export default function AppearanceSettingsPage() {
         <div className="space-y-6">
           <div className="text-xs font-bold tracking-widest text-zinc-400 uppercase">Identity</div>
           
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Logo URL</label>
-            <div className="relative max-w-md">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">↑</span>
-              <Input 
-                value={draft.theme.logoUrl || ""}
-                onChange={(e) => handleThemeChange("logoUrl", e.target.value)}
-                placeholder="https://cdn.example.com/logo.svg"
-                className="pl-8"
-              />
-            </div>
-            <p className="text-xs text-zinc-500">File upload coming soon. Paste a hosted image URL for now.</p>
-          </div>
+          <AssetUpload
+            label="Logo URL"
+            kind="logo"
+            value={draft.theme.logoUrl || ""}
+            onChange={(url, storageId) => setDraft(s => ({ ...s, theme: { ...s.theme, logoUrl: url, logoStorageId: storageId } }))}
+            placeholder="https://cdn.example.com/logo.svg"
+            helpText="Upload an image or paste a hosted URL."
+          />
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Favicon URL</label>
-            <div className="relative max-w-md">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">↑</span>
-              <Input 
-                value={draft.theme.faviconUrl || ""}
-                onChange={(e) => handleThemeChange("faviconUrl", e.target.value)}
-                placeholder="https://cdn.example.com/favicon.png"
-                className="pl-8"
-              />
-            </div>
-            <p className="text-xs text-zinc-500">Recommended: 32x32px .ico or .png</p>
-          </div>
+          <AssetUpload
+            label="Favicon URL"
+            kind="favicon"
+            value={draft.theme.faviconUrl || ""}
+            onChange={(url, storageId) => setDraft(s => ({ ...s, theme: { ...s.theme, faviconUrl: url, faviconStorageId: storageId } }))}
+            placeholder="https://cdn.example.com/favicon.png"
+            helpText="Recommended: 32x32px .ico or .png. Upload or paste a URL."
+          />
         </div>
       </section>
 

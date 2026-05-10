@@ -46,7 +46,9 @@ export default defineSchema({
 
     // Identity & Settings
     logoUrl: v.optional(v.string()),
+    logoStorageId: v.optional(v.id("_storage")),
     faviconUrl: v.optional(v.string()),
+    faviconStorageId: v.optional(v.id("_storage")),
     fontFamily: v.string(),
     borderRadius: v.string(),
     dashboardTitle: v.string(),
