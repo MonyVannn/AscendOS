@@ -49,16 +49,26 @@ export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
     const themeVars: Record<string, string> = {};
     
     const varsToCache = [
+      "--background",
+      "--foreground",
+      "--card",
+      "--card-foreground",
+      "--muted",
+      "--muted-foreground",
+      "--border",
+      "--input",
       "--primary",
       "--primary-foreground",
       "--accent",
       "--accent-foreground",
-      "--background",
-      "--foreground",
       "--sidebar",
       "--sidebar-foreground",
       "--sidebar-primary",
       "--sidebar-primary-foreground",
+      "--sidebar-accent",
+      "--sidebar-accent-foreground",
+      "--sidebar-border",
+      "--agency-heading-text",
       "--radius",
       "--font-sans"
     ];

@@ -3,6 +3,59 @@ import { v } from "convex/values";
 import { INITIAL_FEATURES } from "./featureRegistry";
 
 /**
+ * One-time: backfills optional expanded fields in `agencyThemes` based on legacy tokens.
+ * Run from project root:
+ * `npx convex run seed:backfillAgencyThemeExpandedFields`
+ */
+export const backfillAgencyThemeExpandedFields = internalMutation({
+  handler: async (ctx) => {
+    const themes = await ctx.db.query("agencyThemes").collect();
+    let patched = 0;
+    
+    for (const t of themes) {
+      // If pageBg is already present, assume it has been expanded.
+      if (t.pageBg) continue;
+
+      const pageBg = t.backgroundColor || "#f6f5f4";
+      const cardBg = "#ffffff";
+      const cardInnerBg = "#f4f4f5";
+      const borderColor = "#e4e4e7";
+
+      const headingText = t.textColor || "#111827";
+      const bodyText = t.textColor || "#111827";
+      const mutedText = "#71717a";
+
+      const sidebarBg = t.sidebarColor || "#1F1E1C";
+      const sidebarItemText = "#a1a1aa";
+      const sidebarSectionLabel = "#71717a";
+      const sidebarHoverBg = "rgba(255, 255, 255, 0.05)";
+      const sidebarActiveItemBg = "rgba(255, 255, 255, 0.1)";
+
+      // we could compute foregrounds, but skipping here because resolveAgencyTheme 
+      // already handles fallback for primaryForeground and we don't have access to getContrastingForeground directly.
+
+      await ctx.db.patch(t._id, {
+        pageBg,
+        cardBg,
+        cardInnerBg,
+        borderColor,
+        headingText,
+        bodyText,
+        mutedText,
+        sidebarBg,
+        sidebarItemText,
+        sidebarSectionLabel,
+        sidebarHoverBg,
+        sidebarActiveItemBg,
+      });
+      patched++;
+    }
+    
+    return { patched, total: themes.length };
+  },
+});
+
+/**
  * One-time: copies legacy `ghlApiKey` → `ghlAccessToken`, sets default `ghlLocationId`,
  * removes `ghlApiKey`. Run from project root:
  * `npx convex run seed:backfillAgencyGhlFields`
@@ -81,6 +134,22 @@ export const bootstrapAgency = internalMutation({
       backgroundColor: "#ffffff",
       sidebarColor: "#f4f4f5",
       textColor: "#111827",
+
+      sidebarBg: "#f4f4f5",
+      sidebarItemText: "#71717a",
+      sidebarSectionLabel: "#a1a1aa",
+      sidebarHoverBg: "rgba(0, 0, 0, 0.05)",
+      sidebarActiveItemBg: "rgba(0, 0, 0, 0.1)",
+      
+      pageBg: "#f6f5f4",
+      cardBg: "#ffffff",
+      cardInnerBg: "#f4f4f5",
+      borderColor: "#e4e4e7",
+      
+      headingText: "#111827",
+      bodyText: "#111827",
+      mutedText: "#71717a",
+
       fontFamily: "Inter, sans-serif",
       borderRadius: "0.5rem",
       dashboardTitle: "Divinity Group Dashboard",

@@ -66,12 +66,45 @@ export default function AppearanceSettingsPage() {
             <p className="text-xs text-zinc-500">Click any swatch to open the picker. The preview updates in real time.</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 max-w-xl">
-            <ColorPicker label="Primary" field="primaryColor" value={draft.theme.primaryColor} onChange={handleThemeChange} />
-            <ColorPicker label="Accent" field="accentColor" value={draft.theme.accentColor} onChange={handleThemeChange} />
-            <ColorPicker label="Sidebar" field="sidebarColor" value={draft.theme.sidebarColor} onChange={handleThemeChange} />
-            <ColorPicker label="Background" field="backgroundColor" value={draft.theme.backgroundColor} onChange={handleThemeChange} />
-            <ColorPicker label="Text" field="textColor" value={draft.theme.textColor} onChange={handleThemeChange} />
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-sm font-bold mb-3 text-zinc-700 dark:text-zinc-300">Interactive</h3>
+              <div className="grid grid-cols-2 gap-4 max-w-xl">
+                <ColorPicker label="Primary Color" field="primaryColor" value={draft.theme.primaryColor} onChange={handleThemeChange} />
+                <ColorPicker label="Primary Foreground" field="primaryForeground" value={draft.theme.primaryForeground || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Accent Color" field="accentColor" value={draft.theme.accentColor} onChange={handleThemeChange} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold mb-3 text-zinc-700 dark:text-zinc-300">Content</h3>
+              <div className="grid grid-cols-2 gap-4 max-w-xl">
+                <ColorPicker label="Page Background" field="pageBg" value={draft.theme.pageBg || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Card Background" field="cardBg" value={draft.theme.cardBg || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Card Inner (Muted) BG" field="cardInnerBg" value={draft.theme.cardInnerBg || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Border Color" field="borderColor" value={draft.theme.borderColor || ""} onChange={handleThemeChange} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold mb-3 text-zinc-700 dark:text-zinc-300">Sidebar</h3>
+              <div className="grid grid-cols-2 gap-4 max-w-xl">
+                <ColorPicker label="Sidebar Background" field="sidebarBg" value={draft.theme.sidebarBg || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Sidebar Text" field="sidebarItemText" value={draft.theme.sidebarItemText || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Section Label" field="sidebarSectionLabel" value={draft.theme.sidebarSectionLabel || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Active Item BG" field="sidebarActiveItemBg" value={draft.theme.sidebarActiveItemBg || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Hover BG" field="sidebarHoverBg" value={draft.theme.sidebarHoverBg || ""} onChange={handleThemeChange} />
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold mb-3 text-zinc-700 dark:text-zinc-300">Typography</h3>
+              <div className="grid grid-cols-2 gap-4 max-w-xl">
+                <ColorPicker label="Heading Text" field="headingText" value={draft.theme.headingText || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Body Text" field="bodyText" value={draft.theme.bodyText || ""} onChange={handleThemeChange} />
+                <ColorPicker label="Muted Text" field="mutedText" value={draft.theme.mutedText || ""} onChange={handleThemeChange} />
+              </div>
+            </div>
           </div>
         </div>
       </section>

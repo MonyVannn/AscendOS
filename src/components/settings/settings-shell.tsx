@@ -11,6 +11,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { invalidateRdProfileCache } from "@/lib/rd-profile-cache";
 import { buildAgencyThemeStyle } from "@/lib/agency-theme-css-vars";
+import { resolveAgencyTheme } from "@/lib/agency-theme-resolve";
 
 interface SettingsShellProps {
   tenant: NonNullable<TenantContext>;
@@ -18,17 +19,53 @@ interface SettingsShellProps {
 }
 
 function getInitialDraft(tenant: NonNullable<TenantContext>): SettingsDraft {
+  const resolved = resolveAgencyTheme(tenant.theme) || {
+    primaryColor: "#0075de",
+    accentColor: "#097fe8",
+    pageBg: "#f6f5f4",
+    sidebarBg: "#1F1E1C",
+    bodyText: "#111827",
+    cardBg: "#ffffff",
+    cardInnerBg: "#f4f4f5",
+    borderColor: "#e4e4e7",
+    headingText: "#111827",
+    mutedText: "#71717a",
+    sidebarItemText: "#a1a1aa",
+    sidebarSectionLabel: "#71717a",
+    sidebarHoverBg: "rgba(255, 255, 255, 0.05)",
+    sidebarActiveItemBg: "rgba(255, 255, 255, 0.1)",
+    primaryForeground: "#ffffff",
+  };
+
   return {
     profile: {
       name: tenant.user.name || "",
       bookingLink: tenant.user.bookingLink || "",
     },
     theme: {
-      primaryColor: tenant.theme?.primaryColor || "#0075de",
-      accentColor: tenant.theme?.accentColor || "#097fe8",
-      backgroundColor: tenant.theme?.backgroundColor || "#f6f5f4",
-      sidebarColor: tenant.theme?.sidebarColor || "#1F1E1C",
-      textColor: tenant.theme?.textColor || "#111827",
+      primaryColor: resolved.primaryColor,
+      accentColor: resolved.accentColor,
+      backgroundColor: resolved.pageBg,
+      sidebarColor: resolved.sidebarBg,
+      textColor: resolved.bodyText,
+
+      sidebarBg: resolved.sidebarBg,
+      sidebarItemText: resolved.sidebarItemText,
+      sidebarSectionLabel: resolved.sidebarSectionLabel,
+      sidebarHoverBg: resolved.sidebarHoverBg,
+      sidebarActiveItemBg: resolved.sidebarActiveItemBg,
+
+      pageBg: resolved.pageBg,
+      cardBg: resolved.cardBg,
+      cardInnerBg: resolved.cardInnerBg,
+      borderColor: resolved.borderColor,
+
+      headingText: resolved.headingText,
+      bodyText: resolved.bodyText,
+      mutedText: resolved.mutedText,
+
+      primaryForeground: resolved.primaryForeground,
+
       logoUrl: tenant.theme?.logoUrl || "",
       faviconUrl: tenant.theme?.faviconUrl || "",
       fontFamily: tenant.theme?.fontFamily || "Inter",
@@ -85,6 +122,24 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
           backgroundColor: draft.theme.backgroundColor,
           sidebarColor: draft.theme.sidebarColor,
           textColor: draft.theme.textColor,
+          
+          sidebarBg: draft.theme.sidebarBg || undefined,
+          sidebarItemText: draft.theme.sidebarItemText || undefined,
+          sidebarSectionLabel: draft.theme.sidebarSectionLabel || undefined,
+          sidebarHoverBg: draft.theme.sidebarHoverBg || undefined,
+          sidebarActiveItemBg: draft.theme.sidebarActiveItemBg || undefined,
+
+          pageBg: draft.theme.pageBg || undefined,
+          cardBg: draft.theme.cardBg || undefined,
+          cardInnerBg: draft.theme.cardInnerBg || undefined,
+          borderColor: draft.theme.borderColor || undefined,
+
+          headingText: draft.theme.headingText || undefined,
+          bodyText: draft.theme.bodyText || undefined,
+          mutedText: draft.theme.mutedText || undefined,
+
+          primaryForeground: draft.theme.primaryForeground || undefined,
+
           logoUrl: draft.theme.logoUrl || undefined,
           faviconUrl: draft.theme.faviconUrl || undefined,
           fontFamily: draft.theme.fontFamily,

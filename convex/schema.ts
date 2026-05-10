@@ -15,11 +15,36 @@ export default defineSchema({
 
   agencyThemes: defineTable({
     agencyId: v.id("agencies"),
+    
+    // Legacy fields (will be removed in a future migration)
     primaryColor: v.string(),
     accentColor: v.string(),
     backgroundColor: v.string(),
     sidebarColor: v.string(),
     textColor: v.string(),
+
+    // Sidebar (Expanded)
+    sidebarBg: v.optional(v.string()),
+    sidebarItemText: v.optional(v.string()),
+    sidebarSectionLabel: v.optional(v.string()),
+    sidebarHoverBg: v.optional(v.string()),
+    sidebarActiveItemBg: v.optional(v.string()),
+
+    // Content (Expanded)
+    pageBg: v.optional(v.string()),
+    cardBg: v.optional(v.string()),
+    cardInnerBg: v.optional(v.string()),
+    borderColor: v.optional(v.string()),
+
+    // Typography (Expanded)
+    headingText: v.optional(v.string()),
+    bodyText: v.optional(v.string()),
+    mutedText: v.optional(v.string()),
+
+    // Interactive (Expanded)
+    primaryForeground: v.optional(v.string()),
+
+    // Identity & Settings
     logoUrl: v.optional(v.string()),
     faviconUrl: v.optional(v.string()),
     fontFamily: v.string(),

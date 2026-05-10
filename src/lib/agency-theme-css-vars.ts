@@ -1,8 +1,9 @@
 import React from "react";
 import { TenantContext } from "./tenant";
+import { resolveAgencyTheme } from "./agency-theme-resolve";
 
 // Helper to determine contrasting text color (black or white) based on hex background
-function getContrastingForeground(hexColor: string): string {
+export function getContrastingForeground(hexColor: string): string {
   // Remove hash if present
   const hex = hexColor.replace(/^#/, '');
   
@@ -35,22 +36,33 @@ export function buildAgencyThemeStyle(
   // The system will fall back to globals.css defaults.
   if (!theme || !theme.primaryColor || role !== "RD") return {};
   
-  const primaryForeground = getContrastingForeground(theme.primaryColor);
-  const accentForeground = getContrastingForeground(theme.accentColor || theme.primaryColor);
-  const sidebarForeground = getContrastingForeground(theme.sidebarColor || "#1F1E1C");
-  const sidebarPrimaryForeground = getContrastingForeground(theme.primaryColor);
+  const resolved = resolveAgencyTheme(theme);
+  if (!resolved) return {};
+  
+  const accentForeground = getContrastingForeground(resolved.accentColor);
+  const sidebarPrimaryForeground = getContrastingForeground(resolved.primaryColor);
 
   return {
-    "--primary": theme.primaryColor,
-    "--primary-foreground": primaryForeground,
-    "--accent": theme.accentColor || theme.primaryColor,
+    "--background": resolved.pageBg,
+    "--foreground": resolved.bodyText,
+    "--card": resolved.cardBg,
+    "--card-foreground": resolved.bodyText,
+    "--muted": resolved.cardInnerBg,
+    "--muted-foreground": resolved.mutedText,
+    "--border": resolved.borderColor,
+    "--input": resolved.borderColor,
+    "--primary": resolved.primaryColor,
+    "--primary-foreground": resolved.primaryForeground,
+    "--accent": resolved.accentColor,
     "--accent-foreground": accentForeground,
-    "--background": theme.backgroundColor || "#f6f5f4",
-    "--foreground": theme.textColor || "#111827",
-    "--sidebar": theme.sidebarColor || "#1F1E1C",
-    "--sidebar-foreground": sidebarForeground,
-    "--sidebar-primary": theme.primaryColor,
+    "--sidebar": resolved.sidebarBg,
+    "--sidebar-foreground": resolved.sidebarItemText,
+    "--sidebar-primary": resolved.primaryColor,
     "--sidebar-primary-foreground": sidebarPrimaryForeground,
+    "--sidebar-accent": resolved.sidebarActiveItemBg,
+    "--sidebar-accent-foreground": resolved.primaryColor,
+    "--sidebar-border": resolved.borderColor,
+    "--agency-heading-text": resolved.headingText,
     "--radius": theme.borderRadius || "8px",
     "--font-sans": getFontStack(theme.fontFamily || "Inter"),
   } as React.CSSProperties;

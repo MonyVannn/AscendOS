@@ -43,6 +43,28 @@ export const updateMyAgencyTheme = mutation({
     backgroundColor: v.string(),
     sidebarColor: v.string(),
     textColor: v.string(),
+
+    // Sidebar
+    sidebarBg: v.optional(v.string()),
+    sidebarItemText: v.optional(v.string()),
+    sidebarSectionLabel: v.optional(v.string()),
+    sidebarHoverBg: v.optional(v.string()),
+    sidebarActiveItemBg: v.optional(v.string()),
+
+    // Content
+    pageBg: v.optional(v.string()),
+    cardBg: v.optional(v.string()),
+    cardInnerBg: v.optional(v.string()),
+    borderColor: v.optional(v.string()),
+
+    // Typography
+    headingText: v.optional(v.string()),
+    bodyText: v.optional(v.string()),
+    mutedText: v.optional(v.string()),
+
+    // Interactive
+    primaryForeground: v.optional(v.string()),
+
     logoUrl: v.optional(v.string()),
     faviconUrl: v.optional(v.string()),
     fontFamily: v.string(),
@@ -67,32 +89,42 @@ export const updateMyAgencyTheme = mutation({
 
     if (!theme) throw new Error("Agency theme not found");
 
-    await ctx.db.patch(theme._id, {
+    const patch = {
       primaryColor: args.primaryColor,
       accentColor: args.accentColor,
-      backgroundColor: args.backgroundColor,
-      sidebarColor: args.sidebarColor,
-      textColor: args.textColor,
+      backgroundColor: args.pageBg || args.backgroundColor,
+      sidebarColor: args.sidebarBg || args.sidebarColor,
+      textColor: args.bodyText || args.textColor,
+      
+      sidebarBg: args.sidebarBg,
+      sidebarItemText: args.sidebarItemText,
+      sidebarSectionLabel: args.sidebarSectionLabel,
+      sidebarHoverBg: args.sidebarHoverBg,
+      sidebarActiveItemBg: args.sidebarActiveItemBg,
+
+      pageBg: args.pageBg,
+      cardBg: args.cardBg,
+      cardInnerBg: args.cardInnerBg,
+      borderColor: args.borderColor,
+
+      headingText: args.headingText,
+      bodyText: args.bodyText,
+      mutedText: args.mutedText,
+
+      primaryForeground: args.primaryForeground,
+
       logoUrl: args.logoUrl,
       faviconUrl: args.faviconUrl,
       fontFamily: args.fontFamily,
       borderRadius: args.borderRadius,
       updatedAt: Date.now(),
-    });
+    };
+
+    await ctx.db.patch(theme._id, patch);
 
     return { 
       success: true,
-      theme: {
-        primaryColor: args.primaryColor,
-        accentColor: args.accentColor,
-        backgroundColor: args.backgroundColor,
-        sidebarColor: args.sidebarColor,
-        textColor: args.textColor,
-        logoUrl: args.logoUrl,
-        faviconUrl: args.faviconUrl,
-        fontFamily: args.fontFamily,
-        borderRadius: args.borderRadius,
-      }
+      theme: patch,
     };
   },
 });

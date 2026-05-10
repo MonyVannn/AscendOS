@@ -146,6 +146,24 @@ export const createAgency = mutation({
       backgroundColor: v.string(),
       sidebarColor: v.string(),
       textColor: v.string(),
+      
+      sidebarBg: v.optional(v.string()),
+      sidebarItemText: v.optional(v.string()),
+      sidebarSectionLabel: v.optional(v.string()),
+      sidebarHoverBg: v.optional(v.string()),
+      sidebarActiveItemBg: v.optional(v.string()),
+
+      pageBg: v.optional(v.string()),
+      cardBg: v.optional(v.string()),
+      cardInnerBg: v.optional(v.string()),
+      borderColor: v.optional(v.string()),
+
+      headingText: v.optional(v.string()),
+      bodyText: v.optional(v.string()),
+      mutedText: v.optional(v.string()),
+
+      primaryForeground: v.optional(v.string()),
+
       logoUrl: v.optional(v.string()),
       faviconUrl: v.optional(v.string()),
       fontFamily: v.string(),
@@ -215,6 +233,22 @@ export const createAgency = mutation({
         backgroundColor: "#f6f5f4",
         sidebarColor: "#1F1E1C",
         textColor: "#111827", // sensible default not in form
+        
+        sidebarBg: "#1F1E1C",
+        sidebarItemText: "#a1a1aa",
+        sidebarSectionLabel: "#71717a",
+        sidebarHoverBg: "rgba(255, 255, 255, 0.05)",
+        sidebarActiveItemBg: "rgba(255, 255, 255, 0.1)",
+        
+        pageBg: "#f6f5f4",
+        cardBg: "#ffffff",
+        cardInnerBg: "#f4f4f5",
+        borderColor: "#e4e4e7",
+        
+        headingText: "#111827",
+        bodyText: "#111827",
+        mutedText: "#71717a",
+
         logoUrl: undefined,
         faviconUrl: undefined,
         fontFamily: "Inter",

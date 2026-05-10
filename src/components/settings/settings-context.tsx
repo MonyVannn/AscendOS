@@ -14,6 +14,24 @@ export interface SettingsDraft {
     backgroundColor: string;
     sidebarColor: string;
     textColor: string;
+
+    sidebarBg?: string;
+    sidebarItemText?: string;
+    sidebarSectionLabel?: string;
+    sidebarHoverBg?: string;
+    sidebarActiveItemBg?: string;
+
+    pageBg?: string;
+    cardBg?: string;
+    cardInnerBg?: string;
+    borderColor?: string;
+
+    headingText?: string;
+    bodyText?: string;
+    mutedText?: string;
+
+    primaryForeground?: string;
+
     logoUrl?: string;
     faviconUrl?: string;
     fontFamily: string;

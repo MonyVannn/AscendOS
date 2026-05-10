@@ -20,6 +20,25 @@ export const agencyThemeSchema = z.object({
   accentColor: z.string().trim(),
   backgroundColor: z.string().trim(),
   sidebarColor: z.string().trim(),
+  textColor: z.string().trim().optional(), // Adding this here just to match other schemas, but optional
+  
+  sidebarBg: z.string().trim().optional(),
+  sidebarItemText: z.string().trim().optional(),
+  sidebarSectionLabel: z.string().trim().optional(),
+  sidebarHoverBg: z.string().trim().optional(),
+  sidebarActiveItemBg: z.string().trim().optional(),
+
+  pageBg: z.string().trim().optional(),
+  cardBg: z.string().trim().optional(),
+  cardInnerBg: z.string().trim().optional(),
+  borderColor: z.string().trim().optional(),
+
+  headingText: z.string().trim().optional(),
+  bodyText: z.string().trim().optional(),
+  mutedText: z.string().trim().optional(),
+
+  primaryForeground: z.string().trim().optional(),
+
   logoUrl: emptyOrUrl("Must be a valid URL"),
   faviconUrl: emptyOrUrl("Must be a valid URL"),
   fontFamily: z.string().trim(),
