@@ -55,4 +55,15 @@ export const INITIAL_FEATURES = [
     isActive: true,
     sortOrder: 50,
   },
+  {
+    key: "send-email-template",
+    label: "Send Email Template",
+    description: "Send email templates to contacts",
+    pillar: "tools",
+    type: "smart-form",
+    href: "/dashboard/tools/send-email-template",
+    icon: "mail",
+    isActive: true,
+    sortOrder: 60,
+  },
 ] as const;

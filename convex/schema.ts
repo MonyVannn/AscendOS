@@ -83,7 +83,8 @@ export default defineSchema({
       v.literal("train"),
       v.literal("sell"),
       v.literal("team"),
-      v.literal("account")
+      v.literal("account"),
+      v.literal("tools")
     ),
     type: v.union(v.literal("smart-form"), v.literal("iframe"), v.literal("page")),
     href: v.string(),

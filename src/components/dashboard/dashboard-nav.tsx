@@ -13,6 +13,7 @@ import {
   Home,
   Library,
   LucideIcon,
+  Mail,
   Settings,
   Users,
   Zap,
@@ -31,6 +32,7 @@ const iconMap: Record<string, LucideIcon> = {
   activity: Activity,
   calendar: Calendar,
   settings: Settings,
+  mail: Mail,
 };
 
 const PILLAR_LABELS: Record<string, string> = {
@@ -39,9 +41,10 @@ const PILLAR_LABELS: Record<string, string> = {
   sell: "SELL",
   team: "TEAM",
   account: "ACCOUNT",
+  tools: "TOOLS",
 };
 
-const PILLAR_ORDER = ["recruit", "train", "sell", "team", "account"];
+const PILLAR_ORDER = ["recruit", "train", "sell", "team", "account", "tools"];
 
 export interface DashboardNavProps {
   tenant: NonNullable<TenantContext>;

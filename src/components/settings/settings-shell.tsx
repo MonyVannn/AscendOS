@@ -196,15 +196,12 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
   
   return (
     <SettingsContext.Provider value={{ draft, setDraft, setInitialDraft, isDirty, isSaving, saveDraft, discardDraft, tenant }}>
-      <div className="flex flex-col h-full  dark:bg-zinc-950  overflow-hidden relative">
+      <div className="flex flex-col h-full max-w-screen-lg mx-auto overflow-hidden relative">
         
         {/* Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
           <div>
-            <div className="text-xs font-medium text-zinc-500 mb-1">
-              Settings · {isProfile ? "Profile" : "Appearance"}
-            </div>
-            <h1 className="text-xl font-bold">{isProfile ? "Profile" : "Appearance"}</h1>
+            <h1 className="text-2xl font-bold">{isProfile ? "Profile" : "Appearance"}</h1>
           </div>
           <div className="flex items-center gap-3">
             {isDirty && (
