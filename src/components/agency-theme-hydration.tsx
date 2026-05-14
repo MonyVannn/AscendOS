@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect } from "react";
 import { TenantContext } from "@/lib/tenant";
+import { AGENCY_THEME_DOCUMENT_VARS } from "@/lib/agency-theme-css-vars";
 
 interface AgencyThemeHydrationProps {
   tenant: TenantContext | null;
@@ -10,7 +11,19 @@ interface AgencyThemeHydrationProps {
 export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
   // We use useLayoutEffect to run synchronously before paint on client navigations
   useLayoutEffect(() => {
-    if (!tenant?.agency || tenant.user?.role !== "RD") return;
+    if (!tenant?.agency || tenant.user?.role !== "RD") {
+      // Clear all theme variables if we are not in an RD session with an agency
+      const html = document.documentElement;
+      AGENCY_THEME_DOCUMENT_VARS.forEach(v => {
+        html.style.removeProperty(v);
+      });
+      // Also reset favicon to default if not an RD
+      const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (link && link.href !== window.location.origin + "/favicon.ico") {
+        link.href = "/favicon.ico";
+      }
+      return;
+    }
 
     const cacheKey = `theme:${tenant.agency._id}`;
     
@@ -48,32 +61,7 @@ export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
     const html = document.documentElement;
     const themeVars: Record<string, string> = {};
     
-    const varsToCache = [
-      "--background",
-      "--foreground",
-      "--card",
-      "--card-foreground",
-      "--muted",
-      "--muted-foreground",
-      "--border",
-      "--input",
-      "--primary",
-      "--primary-foreground",
-      "--accent",
-      "--accent-foreground",
-      "--sidebar",
-      "--sidebar-foreground",
-      "--sidebar-primary",
-      "--sidebar-primary-foreground",
-      "--sidebar-accent",
-      "--sidebar-accent-foreground",
-      "--sidebar-border",
-      "--agency-heading-text",
-      "--radius",
-      "--font-sans"
-    ];
-
-    varsToCache.forEach(v => {
+    AGENCY_THEME_DOCUMENT_VARS.forEach(v => {
       const val = html.style.getPropertyValue(v);
       if (val) themeVars[v] = val;
     });

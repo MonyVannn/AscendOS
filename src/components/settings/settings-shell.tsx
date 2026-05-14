@@ -67,9 +67,9 @@ function getInitialDraft(tenant: NonNullable<TenantContext>): SettingsDraft {
       primaryForeground: resolved.primaryForeground,
 
       logoUrl: tenant.theme?.logoUrl || "",
-      logoStorageId: (tenant.theme?.logoStorageId as string) || undefined,
+      logoStorageId: tenant.theme?.logoStorageId,
       faviconUrl: tenant.theme?.faviconUrl || "",
-      faviconStorageId: (tenant.theme?.faviconStorageId as string) || undefined,
+      faviconStorageId: tenant.theme?.faviconStorageId,
       fontFamily: tenant.theme?.fontFamily || "Inter",
       borderRadius: tenant.theme?.borderRadius || "8px",
     },
@@ -143,9 +143,9 @@ export function SettingsShell({ tenant, children }: SettingsShellProps) {
           primaryForeground: draft.theme.primaryForeground || undefined,
 
           logoUrl: draft.theme.logoUrl || undefined,
-          logoStorageId: (draft.theme.logoStorageId as string) || undefined,
+          logoStorageId: draft.theme.logoStorageId,
           faviconUrl: draft.theme.faviconUrl || undefined,
-          faviconStorageId: (draft.theme.faviconStorageId as string) || undefined,
+          faviconStorageId: draft.theme.faviconStorageId,
           fontFamily: draft.theme.fontFamily,
           borderRadius: draft.theme.borderRadius,
         });

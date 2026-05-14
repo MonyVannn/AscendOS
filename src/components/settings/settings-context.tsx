@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { Id } from "@/convex/_generated/dataModel";
 import { TenantContext } from "@/lib/tenant";
 
 export interface SettingsDraft {
@@ -33,9 +34,9 @@ export interface SettingsDraft {
     primaryForeground?: string;
 
     logoUrl?: string;
-    logoStorageId?: string;
+    logoStorageId?: Id<"_storage">;
     faviconUrl?: string;
-    faviconStorageId?: string;
+    faviconStorageId?: Id<"_storage">;
     fontFamily: string;
     borderRadius: string;
   };

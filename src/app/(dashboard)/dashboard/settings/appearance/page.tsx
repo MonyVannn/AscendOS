@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useSettings } from "@/components/settings/settings-context";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ function AssetUpload({
   label: string;
   kind: "logo" | "favicon";
   value: string;
-  onChange: (url: string, storageId?: string) => void;
+  onChange: (url: string, storageId?: Id<"_storage">) => void;
   placeholder: string;
   helpText: string;
 }) {
@@ -46,12 +47,14 @@ function AssetUpload({
         throw new Error("Failed to upload file");
       }
 
-      const { storageId } = await result.json();
+      const { storageId } = (await result.json()) as { storageId: Id<"_storage"> };
 
-      const { url } = await finalizeUpload({ kind, storageId });
-      
-      // Pass both the URL and the storageId to the parent so it can be saved
-      onChange(url, storageId);
+      const { url, storageId: confirmedId } = await finalizeUpload({
+        kind,
+        storageId,
+      });
+
+      onChange(url, confirmedId);
     } catch (error) {
       console.error("Upload failed", error);
       alert(error instanceof Error ? error.message : "Upload failed");

@@ -28,6 +28,31 @@ export function getContrastingForeground(hexColor: string): string {
   return luminance > 0.5 ? "#000000" : "#ffffff";
 }
 
+export const AGENCY_THEME_DOCUMENT_VARS = [
+  "--background",
+  "--foreground",
+  "--card",
+  "--card-foreground",
+  "--muted",
+  "--muted-foreground",
+  "--border",
+  "--input",
+  "--primary",
+  "--primary-foreground",
+  "--accent",
+  "--accent-foreground",
+  "--sidebar",
+  "--sidebar-foreground",
+  "--sidebar-primary",
+  "--sidebar-primary-foreground",
+  "--sidebar-accent",
+  "--sidebar-accent-foreground",
+  "--sidebar-border",
+  "--agency-heading-text",
+  "--radius",
+  "--font-sans"
+];
+
 export function buildAgencyThemeStyle(
   theme: Partial<NonNullable<TenantContext>["theme"]> | undefined,
   role?: string
