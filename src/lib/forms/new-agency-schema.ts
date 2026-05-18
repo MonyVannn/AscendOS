@@ -62,8 +62,6 @@ export const newAgencySchema = z.object({
     .string()
     .trim()
     .refine((v) => v.length > 0, { message: "Required" }),
-  ghlWebhookUrl: emptyOrUrl("Must be a valid URL"),
-  ghlSendEmailWebhookUrl: emptyOrUrl("Must be a valid URL"),
   ghlAccessToken: z
     .string()
     .trim()

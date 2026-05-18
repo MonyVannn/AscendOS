@@ -1,5 +1,6 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type QueryCtx, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
 
 export const assignUserToAgency = mutation({
   args: {
@@ -132,6 +133,78 @@ export const checkSlug = query({
   }
 });
 
+const SEND_EMAIL_TEMPLATE_KEY = "send-email-template";
+
+type AdminCtx = QueryCtx | MutationCtx;
+
+async function requireSuperAdmin(ctx: AdminCtx) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Unauthenticated");
+
+  const caller = await ctx.db
+    .query("users")
+    .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+    .unique();
+
+  if (!caller || caller.role !== "SUPER_ADMIN") {
+    throw new Error("Unauthorized");
+  }
+}
+
+export const listAgencyInboundWebhooks = query({
+  args: { agencyId: v.id("agencies") },
+  handler: async (ctx, { agencyId }) => {
+    await requireSuperAdmin(ctx);
+
+    const agency = await ctx.db.get(agencyId);
+    if (!agency) {
+      throw new Error("Agency not found");
+    }
+
+    const keyed = await ctx.db
+      .query("agencyGhlInboundWebhooks")
+      .withIndex("by_agency", (q) => q.eq("agencyId", agencyId))
+      .collect();
+
+    type WebhookListItem = {
+      key: string;
+      url: string;
+      updatedAt?: number;
+      source: "keyed" | "legacy";
+      webhookId?: Id<"agencyGhlInboundWebhooks">;
+    };
+
+    const webhooks: WebhookListItem[] = keyed.map((w) => ({
+      key: w.key,
+      url: w.url,
+      updatedAt: w.updatedAt,
+      source: "keyed" as const,
+      webhookId: w._id,
+    }));
+
+    const hasSendEmailKeyed = webhooks.some(
+      (r) => r.key === SEND_EMAIL_TEMPLATE_KEY
+    );
+    const legacyUrl = agency.ghlWebhookUrl?.trim();
+    if (!hasSendEmailKeyed && legacyUrl) {
+      webhooks.push({
+        key: SEND_EMAIL_TEMPLATE_KEY,
+        url: legacyUrl,
+        source: "legacy",
+      });
+    }
+
+    return {
+      agency: {
+        _id: agency._id,
+        name: agency.name,
+        slug: agency.slug,
+      },
+      webhooks,
+    };
+  },
+});
+
 export const upsertAgencyInboundWebhook = mutation({
   args: {
     agencyId: v.id("agencies"),
@@ -139,17 +212,7 @@ export const upsertAgencyInboundWebhook = mutation({
     url: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (!caller || caller.role !== "SUPER_ADMIN") {
-      throw new Error("Unauthorized");
-    }
+    await requireSuperAdmin(ctx);
 
     if (!args.url.trim()) {
       throw new Error("Webhook URL cannot be empty");
@@ -174,6 +237,13 @@ export const upsertAgencyInboundWebhook = mutation({
       });
     }
 
+    if (args.key === SEND_EMAIL_TEMPLATE_KEY) {
+      const agency = await ctx.db.get(args.agencyId);
+      if (agency?.ghlWebhookUrl !== undefined) {
+        await ctx.db.patch(args.agencyId, { ghlWebhookUrl: undefined });
+      }
+    }
+
     return { success: true };
   },
 });
@@ -184,17 +254,7 @@ export const deleteAgencyInboundWebhook = mutation({
     key: v.string(),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (!caller || caller.role !== "SUPER_ADMIN") {
-      throw new Error("Unauthorized");
-    }
+    await requireSuperAdmin(ctx);
 
     const existing = await ctx.db
       .query("agencyGhlInboundWebhooks")
@@ -203,6 +263,13 @@ export const deleteAgencyInboundWebhook = mutation({
 
     if (existing) {
       await ctx.db.delete(existing._id);
+    }
+
+    if (args.key === SEND_EMAIL_TEMPLATE_KEY) {
+      const agency = await ctx.db.get(args.agencyId);
+      if (agency?.ghlWebhookUrl !== undefined) {
+        await ctx.db.patch(args.agencyId, { ghlWebhookUrl: undefined });
+      }
     }
 
     return { success: true };
@@ -214,7 +281,6 @@ export const createAgency = mutation({
     name: v.string(),
     slug: v.string(),
     ghlLocationId: v.string(),
-    ghlWebhookUrl: v.optional(v.string()),
     ghlAccessToken: v.string(),
     featureKeys: v.array(v.string()),
     theme: v.optional(v.object({
@@ -282,19 +348,9 @@ export const createAgency = mutation({
       name: args.name,
       slug: args.slug,
       ghlLocationId: args.ghlLocationId,
-      ghlWebhookUrl: args.ghlWebhookUrl,
       ghlAccessToken: args.ghlAccessToken,
       createdAt: Date.now(),
     });
-
-    if (args.ghlWebhookUrl?.trim()) {
-      await ctx.db.insert("agencyGhlInboundWebhooks", {
-        agencyId,
-        key: "send-email-template",
-        url: args.ghlWebhookUrl.trim(),
-        updatedAt: Date.now(),
-      });
-    }
 
     for (const feat of validFeatures) {
       await ctx.db.insert("agencyFeatures", {

@@ -16,3 +16,11 @@ This migration involves a two-phase deployment because Convex schema pushes are 
 ## Phase B (Deploy 2)
 1. Once backfill is confirmed, remove `featuresArray` from `convex/schema.ts` completely.
 2. Deploy the final code.
+
+## Webhooks Migration (Phase 3)
+To migrate legacy `ghlWebhookUrl` fields to the new keyed `agencyGhlInboundWebhooks` table:
+1. Run the backfill script:
+   ```bash
+   npx convex run seed:backfillAgencyInboundWebhooks '{"clearLegacy": true}'
+   ```
+2. Once verified, the `ghlWebhookUrl` field can be safely removed from `convex/schema.ts` in a future deploy.

@@ -1,4 +1,5 @@
 import * as React from "react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
@@ -33,7 +34,10 @@ export function AgencyCard({ agency }: { agency: Agency }) {
   };
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 hover:shadow-md transition-shadow duration-300">
+    <Link
+      href={`/admin/agencies/${agency._id}`}
+      className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 transition-all duration-300 group"
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -106,7 +110,10 @@ export function AgencyCard({ agency }: { agency: Agency }) {
               </Badge>
             ))}
         </div>
+        <p className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700 dark:text-blue-400">
+          Manage webhooks →
+        </p>
       </div>
-    </div>
+    </Link>
   );
 }

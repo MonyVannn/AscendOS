@@ -94,6 +94,48 @@ export const backfillAgencyGhlFields = internalMutation({
   },
 });
 
+/**
+ * One-time: migrates legacy `ghlWebhookUrl` to keyed `agencyGhlInboundWebhooks` table.
+ * Run from project root:
+ * `npx convex run seed:backfillAgencyInboundWebhooks`
+ */
+export const backfillAgencyInboundWebhooks = internalMutation({
+  args: { clearLegacy: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const agencies = await ctx.db.query("agencies").collect();
+    let inserted = 0;
+    let cleared = 0;
+
+    for (const a of agencies) {
+      if (!a.ghlWebhookUrl?.trim()) continue;
+
+      const existingKeyed = await ctx.db
+        .query("agencyGhlInboundWebhooks")
+        .withIndex("by_agency_and_key", (q) =>
+          q.eq("agencyId", a._id).eq("key", "send-email-template")
+        )
+        .first();
+
+      if (!existingKeyed) {
+        await ctx.db.insert("agencyGhlInboundWebhooks", {
+          agencyId: a._id,
+          key: "send-email-template",
+          url: a.ghlWebhookUrl.trim(),
+          updatedAt: Date.now(),
+        });
+        inserted++;
+      }
+
+      if (args.clearLegacy) {
+        await ctx.db.patch(a._id, { ghlWebhookUrl: undefined });
+        cleared++;
+      }
+    }
+
+    return { inserted, cleared, totalAgencies: agencies.length };
+  },
+});
+
 export const bootstrapAgency = internalMutation({
   handler: async (ctx) => {
     // 1. Check if "Divinity Group" exists
