@@ -94,7 +94,9 @@ export function buildAgencyThemeStyle(
 }
 
 export function getFontStack(fontFamily: string): string {
-  switch (fontFamily) {
+  // Normalize by stripping any trailing font fallbacks and trimming whitespace
+  const normalizedFamily = fontFamily.split(',')[0].trim();
+  switch (normalizedFamily) {
     case "Inter":
       return "var(--font-inter), sans-serif";
     case "DM Sans":

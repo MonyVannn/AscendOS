@@ -192,7 +192,7 @@ export const bootstrapAgency = internalMutation({
       bodyText: "#111827",
       mutedText: "#71717a",
 
-      fontFamily: "Inter, sans-serif",
+      fontFamily: "Inter",
       borderRadius: "0.5rem",
       dashboardTitle: "Divinity Group Dashboard",
       updatedAt: Date.now(),
