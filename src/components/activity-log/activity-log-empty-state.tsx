@@ -11,7 +11,7 @@ export function ActivityLogEmptyState() {
       </div>
       <h3 className="text-lg font-semibold text-foreground mb-1">No submissions yet.</h3>
       <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-        Logs will appear here after your first automation is triggered through the Hub.
+        Send your first email template above.
       </p>
     </div>
   )

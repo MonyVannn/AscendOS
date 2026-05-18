@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { fetchQuery } from "convex/nextjs";
+import { fetchQuery, fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import {
   sendEmailTemplateSchema,
@@ -90,6 +90,26 @@ export async function POST(req: Request) {
       retry: result.retry,
       latency_ms,
     });
+
+    if (agency) {
+      try {
+        await fetchMutation(api.activityLog.recordSubmission, {
+          agencyId: agency._id,
+          userId: user._id,
+          toolName: "email-template",
+          templateName: parsed.data.dgemailtemplate,
+          contactEmail: parsed.data.email,
+          contactName: parsed.data.first_name,
+          ghlStatus: result.status ?? 0,
+          success: result.ok,
+          retried: result.retry,
+          errorMessage: result.ok ? undefined : result.errorMessage,
+          latencyMs: latency_ms,
+        }, { token: token ?? undefined });
+      } catch (logErr) {
+        console.error("Failed to record submission log in Convex:", logErr);
+      }
+    }
 
     if (result.ok) {
       return NextResponse.json({ success: true });

@@ -1,24 +1,29 @@
 "use client"
 
 import * as React from "react"
+import { useQuery, useConvexAuth } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import { ActivityLogFilters } from "./activity-log-filters"
 import { ActivityLogTable } from "./activity-log-table"
 import { ActivityLogTableSkeleton } from "./activity-log-table-skeleton"
 import { ActivityLogEmptyState } from "./activity-log-empty-state"
-import { MOCK_ACTIVITY_LOGS } from "./activity-log-mock-data"
+import { ActivityLogEntry } from "./activity-log-types"
 
 export function ActivityLogPageClient() {
-  const [isLoading, setIsLoading] = React.useState(true)
+  const { isAuthenticated } = useConvexAuth()
+  const rawLogs = useQuery(api.activityLog.listSubmissionLogs, isAuthenticated ? { limit: 50 } : "skip")
 
-  // Simulate loading state
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 500)
-    return () => clearTimeout(timer)
-  }, [])
+  const isLoading = rawLogs === undefined
 
-  const logs = MOCK_ACTIVITY_LOGS
+  const logs: ActivityLogEntry[] | undefined = rawLogs?.map(log => ({
+    id: log._id,
+    submittedAt: new Date(log.submittedAt).toISOString(),
+    contactName: log.contactName || "—",
+    contactEmail: log.contactEmail,
+    templateName: log.templateName || "—",
+    toolName: "Email Template",
+    success: log.success
+  }))
 
   return (
     <div className="mx-auto max-w-screen-xl py-8 px-4 sm:px-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -34,7 +39,7 @@ export function ActivityLogPageClient() {
 
       <ActivityLogFilters />
 
-      {isLoading ? (
+      {isLoading || !logs ? (
         <ActivityLogTableSkeleton />
       ) : logs.length === 0 ? (
         <ActivityLogEmptyState />

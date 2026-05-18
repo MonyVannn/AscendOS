@@ -73,17 +73,23 @@ export async function postGhlWithRetry(
   payload: Record<string, unknown>,
   timeoutMs: number,
   retryDelayMs: number
-) {
+): Promise<{ ok: boolean; status: number | null; retry: boolean; errorMessage?: string }> {
+  let lastError: string | undefined;
+
   try {
     const res = await postGhlSubmitOnce(endpoint, payload, timeoutMs);
     if (res.ok) {
       return { ok: true, status: res.status, retry: false };
     }
+    const text = await res.text().catch(() => "");
+    lastError = text ? text.substring(0, 500) : `HTTP ${res.status}`;
+    
     if (res.status >= 400 && res.status < 500) {
-      return { ok: false, status: res.status, retry: false };
+      return { ok: false, status: res.status, retry: false, errorMessage: lastError };
     }
     // 5xx -> fall through to retry
   } catch (err: unknown) {
+    lastError = err instanceof Error ? err.message : "Network error";
     // Timeout or network error -> fall through to retry
   }
 
@@ -91,9 +97,15 @@ export async function postGhlWithRetry(
 
   try {
     const res2 = await postGhlSubmitOnce(endpoint, payload, timeoutMs);
-    return { ok: res2.ok, status: res2.status, retry: true };
+    if (res2.ok) {
+      return { ok: true, status: res2.status, retry: true };
+    }
+    const text = await res2.text().catch(() => "");
+    const errorMsg = text ? text.substring(0, 500) : `HTTP ${res2.status}`;
+    return { ok: false, status: res2.status, retry: true, errorMessage: errorMsg };
   } catch (err: unknown) {
-    return { ok: false, status: null, retry: true };
+    const errorMsg = err instanceof Error ? err.message : "Network error";
+    return { ok: false, status: null, retry: true, errorMessage: errorMsg };
   }
 }
 

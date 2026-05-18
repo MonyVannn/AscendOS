@@ -94,10 +94,14 @@ describe("postGhlWithRetry", () => {
   });
 
   it("does not retry on 400", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 400 } as Response);
+    vi.mocked(fetch).mockResolvedValueOnce({ 
+      ok: false, 
+      status: 400,
+      text: async () => "Bad Request" 
+    } as unknown as Response);
 
     const result = await postGhlWithRetry("http://example.com", {}, 1000, 10);
-    expect(result).toEqual({ ok: false, status: 400, retry: false });
+    expect(result).toEqual({ ok: false, status: 400, retry: false, errorMessage: "Bad Request" });
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
@@ -117,7 +121,7 @@ describe("postGhlWithRetry", () => {
       .mockRejectedValueOnce(new Error("fetch failed"));
 
     const result = await postGhlWithRetry("http://example.com", {}, 1000, 10);
-    expect(result).toEqual({ ok: false, status: null, retry: true });
+    expect(result).toEqual({ ok: false, status: null, retry: true, errorMessage: "fetch failed" });
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 });

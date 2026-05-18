@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as activityLog from "../activityLog.js";
 import type * as admin from "../admin.js";
 import type * as featureRegistry from "../featureRegistry.js";
 import type * as features from "../features.js";
@@ -25,6 +26,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  activityLog: typeof activityLog;
   admin: typeof admin;
   featureRegistry: typeof featureRegistry;
   features: typeof features;

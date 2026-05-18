@@ -79,9 +79,20 @@ export default defineSchema({
 
   webhookLogs: defineTable({
     agencyId: v.id("agencies"),
-    payload: v.optional(v.any()), // maps to Json
-    createdAt: v.optional(v.number()),
-  }).index("by_agency", ["agencyId"]),
+    userId: v.id("users"),
+    toolName: v.string(),
+    templateName: v.optional(v.string()),
+    contactEmail: v.string(),
+    contactName: v.optional(v.string()),
+    ghlStatus: v.number(),
+    success: v.boolean(),
+    retried: v.boolean(),
+    errorMessage: v.optional(v.string()),
+    latencyMs: v.optional(v.number()),
+    submittedAt: v.number(),
+  })
+    .index("by_agency", ["agencyId"])
+    .index("by_agency_user_submitted", ["agencyId", "userId", "submittedAt"]),
 
   features: defineTable({
     key: v.string(),
