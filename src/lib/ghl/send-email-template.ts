@@ -47,7 +47,7 @@ export async function sleep(ms: number) {
 
 export async function postGhlSubmitOnce(
   endpoint: string,
-  payload: Record<string, any>,
+  payload: Record<string, unknown>,
   timeoutMs: number
 ) {
   const controller = new AbortController();
@@ -70,7 +70,7 @@ export async function postGhlSubmitOnce(
 
 export async function postGhlWithRetry(
   endpoint: string,
-  payload: Record<string, any>,
+  payload: Record<string, unknown>,
   timeoutMs: number,
   retryDelayMs: number
 ) {
@@ -83,7 +83,7 @@ export async function postGhlWithRetry(
       return { ok: false, status: res.status, retry: false };
     }
     // 5xx -> fall through to retry
-  } catch (err: any) {
+  } catch (err: unknown) {
     // Timeout or network error -> fall through to retry
   }
 
@@ -92,7 +92,7 @@ export async function postGhlWithRetry(
   try {
     const res2 = await postGhlSubmitOnce(endpoint, payload, timeoutMs);
     return { ok: res2.ok, status: res2.status, retry: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     return { ok: false, status: null, retry: true };
   }
 }

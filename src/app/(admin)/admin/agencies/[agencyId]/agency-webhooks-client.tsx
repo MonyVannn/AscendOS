@@ -82,6 +82,7 @@ export function AgencyWebhooksClient({ agencyId }: { agencyId: string }) {
     for (const row of buildDisplayRows(data.webhooks)) {
       next[row.key] = row.url;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraftUrls(next);
   }, [data]);
 

@@ -10,9 +10,8 @@ import {
   Lock,
   Copy,
   AlertTriangle,
-  Info,
-  Send,
-  ChevronDown,
+    Info,
+    ChevronDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -56,7 +55,7 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
     }
   };
 
-  const handleSend = async () => {
+  const handleSend = React.useCallback(async () => {
     if (!isFormValid || isSubmitting) return;
     
     setIsSubmitting(true);
@@ -82,12 +81,12 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
       } else {
         toast.error(data.error || "Failed to send template");
       }
-    } catch (err) {
+    } catch (err: unknown) {
       toast.error("Unexpected error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [isFormValid, isSubmitting, firstName, email, company, template]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -98,7 +97,7 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFormValid, firstName, email, company, template, user]);
+  }, [handleSend]);
 
   return (
     <div className="flex flex-col">
