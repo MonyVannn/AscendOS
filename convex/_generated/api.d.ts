@@ -11,6 +11,7 @@
 import type * as admin from "../admin.js";
 import type * as featureRegistry from "../featureRegistry.js";
 import type * as features from "../features.js";
+import type * as ghlInbound from "../ghlInbound.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   featureRegistry: typeof featureRegistry;
   features: typeof features;
+  ghlInbound: typeof ghlInbound;
   http: typeof http;
   seed: typeof seed;
   settings: typeof settings;

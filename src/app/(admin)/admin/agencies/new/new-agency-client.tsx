@@ -28,6 +28,7 @@ const defaultFormValues: NewAgencyFormInput = {
   slug: "",
   ghlLocationId: "",
   ghlWebhookUrl: "",
+  ghlSendEmailWebhookUrl: "",
   ghlAccessToken: "",
   featureKeys: ["beast-mode-drip", "field-trainer", "resource-hub"],
   theme: {
@@ -73,7 +74,7 @@ export function NewAgencyClient() {
           name: value.name,
           slug: value.slug,
           ghlLocationId: value.ghlLocationId,
-          ghlWebhookUrl: value.ghlWebhookUrl || undefined,
+          ghlWebhookUrl: value.ghlWebhookUrl || value.ghlSendEmailWebhookUrl || undefined,
           ghlAccessToken: value.ghlAccessToken,
           featureKeys: value.featureKeys,
           theme:
@@ -273,14 +274,14 @@ export function NewAgencyClient() {
           }}
         </form.Field>
 
-        <form.Field name="ghlWebhookUrl">
+        <form.Field name="ghlSendEmailWebhookUrl">
           {(field) => {
             const msg = firstValidationMessage(field.state.meta.errors);
             return (
               <div className="space-y-2">
                 <div className="flex justify-between items-start gap-3">
                   <label className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
-                    GHL Webhook URL
+                    Send Email Template Webhook URL
                   </label>
                   {msg ? (
                     <span className={LABEL_ERR_ASIDE} role="alert">
@@ -296,13 +297,48 @@ export function NewAgencyClient() {
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
+                  placeholder="https://services.msgsndr.com/hooks/..."
+                  className="bg-zinc-50 font-mono text-sm"
+                />
+                {!msg ? (
+                  <p className="text-[13px] text-zinc-500">
+                    Add this to enable the Send Email Template tool.
+                  </p>
+                ) : null}
+              </div>
+            );
+          }}
+        </form.Field>
+
+        <form.Field name="ghlWebhookUrl">
+          {(field) => {
+            const msg = firstValidationMessage(field.state.meta.errors);
+            return (
+              <div className="space-y-2">
+                <div className="flex justify-between items-start gap-3">
+                  <label className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+                    Legacy GHL Webhook URL
+                  </label>
+                  {msg ? (
+                    <span className={LABEL_ERR_ASIDE} role="alert">
+                      {msg}
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
+                      Deprecated
+                    </span>
+                  )}
+                </div>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
                   placeholder="https://services.leadconnectorhq.com/hooks/..."
                   className="bg-zinc-50 font-mono text-sm"
                 />
                 {!msg ? (
                   <p className="text-[13px] text-zinc-500">
-                    Add this if you want events pushed back into GHL. You can
-                    wire it up later.
+                    Use specific integration webhooks above instead. This is kept for backward compatibility.
                   </p>
                 ) : null}
               </div>

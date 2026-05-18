@@ -6,6 +6,7 @@ import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { getTenantContext } from "@/lib/tenant";
 import { buildAgencyThemeStyle } from "@/lib/agency-theme-css-vars";
 import { AgencyThemeHydration } from "@/components/agency-theme-hydration";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -65,6 +66,7 @@ export default async function RootLayout({
         <ConvexClientProvider>
           {children}
         </ConvexClientProvider>
+        <Toaster />
       </body>
     </html>
   );

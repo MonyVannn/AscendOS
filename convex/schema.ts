@@ -55,6 +55,15 @@ export default defineSchema({
     updatedAt: v.optional(v.number()),
   }).index("by_agency", ["agencyId"]),
 
+  agencyGhlInboundWebhooks: defineTable({
+    agencyId: v.id("agencies"),
+    key: v.string(),
+    url: v.string(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_agency", ["agencyId"])
+    .index("by_agency_and_key", ["agencyId", "key"]),
+
   users: defineTable({
     clerkId: v.string(),
     email: v.optional(v.string()),

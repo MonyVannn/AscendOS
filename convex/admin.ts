@@ -132,6 +132,83 @@ export const checkSlug = query({
   }
 });
 
+export const upsertAgencyInboundWebhook = mutation({
+  args: {
+    agencyId: v.id("agencies"),
+    key: v.string(),
+    url: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!caller || caller.role !== "SUPER_ADMIN") {
+      throw new Error("Unauthorized");
+    }
+
+    if (!args.url.trim()) {
+      throw new Error("Webhook URL cannot be empty");
+    }
+
+    const existing = await ctx.db
+      .query("agencyGhlInboundWebhooks")
+      .withIndex("by_agency_and_key", (q) => q.eq("agencyId", args.agencyId).eq("key", args.key))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        url: args.url.trim(),
+        updatedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("agencyGhlInboundWebhooks", {
+        agencyId: args.agencyId,
+        key: args.key,
+        url: args.url.trim(),
+        updatedAt: Date.now(),
+      });
+    }
+
+    return { success: true };
+  },
+});
+
+export const deleteAgencyInboundWebhook = mutation({
+  args: {
+    agencyId: v.id("agencies"),
+    key: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .unique();
+
+    if (!caller || caller.role !== "SUPER_ADMIN") {
+      throw new Error("Unauthorized");
+    }
+
+    const existing = await ctx.db
+      .query("agencyGhlInboundWebhooks")
+      .withIndex("by_agency_and_key", (q) => q.eq("agencyId", args.agencyId).eq("key", args.key))
+      .first();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+
+    return { success: true };
+  },
+});
+
 export const createAgency = mutation({
   args: {
     name: v.string(),
@@ -209,6 +286,15 @@ export const createAgency = mutation({
       ghlAccessToken: args.ghlAccessToken,
       createdAt: Date.now(),
     });
+
+    if (args.ghlWebhookUrl?.trim()) {
+      await ctx.db.insert("agencyGhlInboundWebhooks", {
+        agencyId,
+        key: "send-email-template",
+        url: args.ghlWebhookUrl.trim(),
+        updatedAt: Date.now(),
+      });
+    }
 
     for (const feat of validFeatures) {
       await ctx.db.insert("agencyFeatures", {

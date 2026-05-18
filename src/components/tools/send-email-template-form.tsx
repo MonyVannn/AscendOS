@@ -17,13 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-const MOCK_TEMPLATES = [
-  { id: "1", label: "Ask For Referrals" },
-  { id: "2", label: "Follow Up - No Show" },
-  { id: "3", label: "Welcome - New Client" },
-  { id: "4", label: "Annual Review Reminder" },
-];
+import { GHL_EMAIL_TEMPLATES } from "@/lib/ghl/send-email-template";
+import { toast } from "sonner";
 
 interface SendEmailTemplateFormProps {
   user: {
@@ -41,8 +36,9 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
   const [firstName, setFirstName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [company, setCompany] = React.useState("");
-  const [template, setTemplate] = React.useState("1");
+  const [template, setTemplate] = React.useState<string>(GHL_EMAIL_TEMPLATES[0]);
   const [copied, setCopied] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const isProfileComplete = Boolean(
     user.name?.trim() && user.email?.trim() && user.bookingLink?.trim()
@@ -60,14 +56,37 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
     }
   };
 
-  const handleSend = () => {
-    if (!isFormValid) return;
-    console.debug("Sending email payload:", {
-      contact: { firstName, email, company },
-      template,
-      agent: { name: user.name, email: user.email, bookingLink: user.bookingLink },
-    });
-    // Stubbed until backend pass
+  const handleSend = async () => {
+    if (!isFormValid || isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/ghl/send-email-template", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          email,
+          companyName: company,
+          dgemailtemplate: template,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Email template sent successfully");
+        setFirstName("");
+        setEmail("");
+        setCompany("");
+      } else {
+        toast.error(data.error || "Failed to send template");
+      }
+    } catch (err) {
+      toast.error("Unexpected error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   React.useEffect(() => {
@@ -144,9 +163,9 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
                 onChange={(e) => setTemplate(e.target.value)}
                 className="flex h-10 w-full min-w-0 rounded-4xl border border-input bg-input/30 px-3 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 appearance-none md:text-sm pl-9 cursor-pointer"
               >
-                {MOCK_TEMPLATES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
+                {GHL_EMAIL_TEMPLATES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
                   </option>
                 ))}
               </select>
@@ -272,10 +291,10 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
         <div className="pt-6">
           <Button 
             className="w-full h-11 text-base font-semibold bg-[#0f62fe] hover:bg-[#0f62fe]/90 text-white border-0"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
             onClick={handleSend}
           >
-            Send
+            {isSubmitting ? "Sending..." : "Send"}
           </Button>
           
           <div className="flex items-center justify-between mt-4 text-[11px] text-muted-foreground px-1">
