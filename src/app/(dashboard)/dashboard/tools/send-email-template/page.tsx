@@ -1,5 +1,6 @@
 import { getTenantContext } from "@/lib/tenant";
 import { SendEmailTemplateForm } from "@/components/tools/send-email-template-form";
+import { GHL_EMAIL_TEMPLATE_OPTIONS } from "@/lib/ghl/send-email-template";
 import { redirect } from "next/navigation";
 
 export default async function SendEmailTemplatePage() {
@@ -21,7 +22,7 @@ export default async function SendEmailTemplatePage() {
         <div className="shrink-0 mt-1 sm:mt-0 pt-1">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-            12 templates available
+            {GHL_EMAIL_TEMPLATE_OPTIONS.length} templates available
           </span>
         </div>
       </div>

@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { GHL_EMAIL_TEMPLATES } from "@/lib/ghl/send-email-template";
+import { GHL_EMAIL_TEMPLATE_OPTIONS } from "@/lib/ghl/send-email-template";
 import { toast } from "sonner";
 
 interface SendEmailTemplateFormProps {
@@ -35,7 +35,7 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
   const [firstName, setFirstName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [company, setCompany] = React.useState("");
-  const [template, setTemplate] = React.useState<string>(GHL_EMAIL_TEMPLATES[0]);
+  const [template, setTemplate] = React.useState<string>(GHL_EMAIL_TEMPLATE_OPTIONS[0].value);
   const [copied, setCopied] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -162,9 +162,9 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
                 onChange={(e) => setTemplate(e.target.value)}
                 className="flex h-10 w-full min-w-0 rounded-4xl border border-input bg-input/30 px-3 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 appearance-none md:text-sm pl-9 cursor-pointer"
               >
-                {GHL_EMAIL_TEMPLATES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                {GHL_EMAIL_TEMPLATE_OPTIONS.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
                   </option>
                 ))}
               </select>
