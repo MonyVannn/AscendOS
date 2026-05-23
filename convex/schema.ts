@@ -92,7 +92,8 @@ export default defineSchema({
     submittedAt: v.number(),
   })
     .index("by_agency", ["agencyId"])
-    .index("by_agency_user_submitted", ["agencyId", "userId", "submittedAt"]),
+    .index("by_agency_user_submitted", ["agencyId", "userId", "submittedAt"])
+    .index("by_agency_submitted", ["agencyId", "submittedAt"]),
 
   features: defineTable({
     key: v.string(),

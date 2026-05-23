@@ -1,23 +1,36 @@
 "use client"
 
 import * as React from "react"
-import { Search } from "lucide-react"
-
 import { Input } from "@/components/ui/input"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { DatePickerWithRange } from "@/components/ui/date-range-picker"
+import { DateRange } from "react-day-picker"
+import { ActivityLogStatusFilter } from "./activity-log-types"
 
-export function ActivityLogFilters() {
-  const [status, setStatus] = React.useState("all")
-  const [search, setSearch] = React.useState("")
+interface ActivityLogFiltersProps {
+  status: ActivityLogStatusFilter;
+  onStatusChange: (status: ActivityLogStatusFilter) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
+  dateRange: DateRange | undefined;
+  onDateRangeChange: (range: DateRange | undefined) => void;
+}
 
+export function ActivityLogFilters({
+  status,
+  onStatusChange,
+  search,
+  onSearchChange,
+  dateRange,
+  onDateRangeChange
+}: ActivityLogFiltersProps) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       <ToggleGroup
         type="single"
         value={status}
         onValueChange={(value) => {
-          if (value) setStatus(value)
+          if (value) onStatusChange(value as ActivityLogStatusFilter)
         }}
         className="justify-start bg-white dark:bg-zinc-950 border border-border p-1 rounded-lg shadow-sm h-10"
       >
@@ -34,14 +47,18 @@ export function ActivityLogFilters() {
         </ToggleGroupItem>
       </ToggleGroup>
 
-      <DatePickerWithRange className="h-10 bg-white dark:bg-zinc-950 shadow-sm rounded-lg" />
+      <DatePickerWithRange 
+        className="h-10 bg-white dark:bg-zinc-950 shadow-sm rounded-lg" 
+        date={dateRange}
+        onDateChange={onDateRangeChange}
+      />
 
       <div className="relative flex-1 min-w-[200px]">
         <Input
           placeholder="Search by contact name or email..."
           className="h-10 bg-white dark:bg-zinc-950 shadow-sm rounded-lg border-border px-4"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
     </div>

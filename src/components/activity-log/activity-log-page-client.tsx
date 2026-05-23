@@ -7,7 +7,9 @@ import { ActivityLogFilters } from "./activity-log-filters"
 import { ActivityLogTable } from "./activity-log-table"
 import { ActivityLogTableSkeleton } from "./activity-log-table-skeleton"
 import { ActivityLogEmptyState } from "./activity-log-empty-state"
-import { ActivityLogEntry } from "./activity-log-types"
+import { ActivityLogEntry, ActivityLogFiltersState, ActivityLogStatusFilter, filterActivityLogs } from "./activity-log-types"
+import { subDays } from "date-fns"
+import { DateRange } from "react-day-picker"
 
 export function ActivityLogPageClient() {
   const { isAuthenticated } = useConvexAuth()
@@ -25,6 +27,17 @@ export function ActivityLogPageClient() {
     success: log.success
   }))
 
+  const [status, setStatus] = React.useState<ActivityLogStatusFilter>("all")
+  const [search, setSearch] = React.useState("")
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  })
+
+  const filteredLogs = React.useMemo(() => {
+    return filterActivityLogs(logs ?? [], { status, search, dateRange })
+  }, [logs, status, search, dateRange])
+
   return (
     <div className="mx-auto max-w-screen-xl py-8 px-4 sm:px-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <div className="space-y-1">
@@ -37,14 +50,28 @@ export function ActivityLogPageClient() {
         </p>
       </div>
 
-      <ActivityLogFilters />
+      <ActivityLogFilters 
+        status={status}
+        onStatusChange={setStatus}
+        search={search}
+        onSearchChange={setSearch}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+      />
 
       {isLoading || !logs ? (
         <ActivityLogTableSkeleton />
       ) : logs.length === 0 ? (
         <ActivityLogEmptyState />
+      ) : filteredLogs.length === 0 ? (
+        <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col items-center justify-center py-24 px-4 text-center">
+          <h3 className="text-lg font-semibold text-foreground mb-1">No results match your filters.</h3>
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+            Try adjusting your search, status, or date range.
+          </p>
+        </div>
       ) : (
-        <ActivityLogTable logs={logs} />
+        <ActivityLogTable logs={filteredLogs} />
       )}
     </div>
   )

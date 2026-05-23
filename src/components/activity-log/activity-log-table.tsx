@@ -19,7 +19,7 @@ export function ActivityLogTable({ logs }: { logs: ActivityLogEntry[] }) {
       <Table className="border border-border">
         <TableHeader>
           <TableRow className="border-b border-border hover:bg-transparent">
-            <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-10">Date</TableHead>
+            <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-10 pl-8">Date</TableHead>
             <TableHead className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-10">Contact</TableHead>
             <TableHead className="hidden md:table-cell text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-10">Template</TableHead>
             <TableHead className="hidden md:table-cell text-[10px] font-bold text-muted-foreground uppercase tracking-wider h-10">Tool</TableHead>
@@ -39,7 +39,7 @@ export function ActivityLogTable({ logs }: { logs: ActivityLogEntry[] }) {
                 }`}
               >
                 <TableCell className="whitespace-nowrap py-4">
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-0.5 pl-5">
                     <span className="text-sm font-medium text-foreground">{dateParts.date}</span>
                     <span className="text-[11px] text-muted-foreground">{dateParts.time}</span>
                   </div>

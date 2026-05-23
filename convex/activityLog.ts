@@ -56,8 +56,8 @@ export const listSubmissionLogs = query({
 
     const logs = await ctx.db
       .query("webhookLogs")
-      .withIndex("by_agency_user_submitted", (q) => 
-        q.eq("agencyId", caller.agencyId!).eq("userId", caller._id)
+      .withIndex("by_agency_submitted", (q) => 
+        q.eq("agencyId", caller.agencyId!)
       )
       .order("desc")
       .take(limit);

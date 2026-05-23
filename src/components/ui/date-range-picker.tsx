@@ -16,11 +16,19 @@ import {
 
 export function DatePickerWithRange({
   className,
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
+  date: controlledDate,
+  onDateChange,
+}: React.HTMLAttributes<HTMLDivElement> & {
+  date?: DateRange;
+  onDateChange?: (date: DateRange | undefined) => void;
+}) {
+  const [internalDate, setInternalDate] = React.useState<DateRange | undefined>({
     from: subDays(new Date(), 30),
     to: new Date(),
   })
+
+  const date = controlledDate !== undefined ? controlledDate : internalDate;
+  const setDate = onDateChange || setInternalDate;
 
   return (
     <div className={cn("grid gap-2", className)}>
