@@ -81,7 +81,7 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
       } else {
         toast.error(data.error || "Failed to send template");
       }
-    } catch (err: unknown) {
+    } catch {
       toast.error("Unexpected error. Please try again.");
     } finally {
       setIsSubmitting(false);

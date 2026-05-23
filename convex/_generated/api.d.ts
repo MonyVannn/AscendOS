@@ -10,6 +10,7 @@
 
 import type * as activityLog from "../activityLog.js";
 import type * as admin from "../admin.js";
+import type * as dashboard from "../dashboard.js";
 import type * as featureRegistry from "../featureRegistry.js";
 import type * as features from "../features.js";
 import type * as ghlInbound from "../ghlInbound.js";
@@ -28,6 +29,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   activityLog: typeof activityLog;
   admin: typeof admin;
+  dashboard: typeof dashboard;
   featureRegistry: typeof featureRegistry;
   features: typeof features;
   ghlInbound: typeof ghlInbound;

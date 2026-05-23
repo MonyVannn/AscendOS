@@ -7,7 +7,8 @@ import { ActivityLogFilters } from "./activity-log-filters"
 import { ActivityLogTable } from "./activity-log-table"
 import { ActivityLogTableSkeleton } from "./activity-log-table-skeleton"
 import { ActivityLogEmptyState } from "./activity-log-empty-state"
-import { ActivityLogEntry, ActivityLogFiltersState, ActivityLogStatusFilter, filterActivityLogs } from "./activity-log-types"
+import { ActivityLogEntry, ActivityLogStatusFilter, filterActivityLogs } from "./activity-log-types"
+import { getToolDisplayName } from "@/lib/feature-tool-mapping"
 import { subDays } from "date-fns"
 import { DateRange } from "react-day-picker"
 
@@ -23,7 +24,7 @@ export function ActivityLogPageClient() {
     contactName: log.contactName || "—",
     contactEmail: log.contactEmail,
     templateName: log.templateName || "—",
-    toolName: "Email Template",
+    toolName: getToolDisplayName(log.toolName),
     success: log.success
   }))
 
