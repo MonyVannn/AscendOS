@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { iconMap } from "@/lib/dashboard-icons";
 import { formatRelativeTime } from "@/lib/dashboard-period";
+import { IconArrowRight } from "@tabler/icons-react";
 
 export type QuickActionItem = {
   featureKey: string;
@@ -27,8 +28,9 @@ export function DashboardQuickActions({ actions, nowMs }: DashboardQuickActionsP
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Quick Actions</h3>
-        <Link href="/dashboard/activity-log" className="text-sm font-medium text-red-600 hover:text-red-700 hover:underline">
-          View all forms →
+        <Link href="/dashboard/activity-log" className="group flex items-center text-sm font-medium text-accent hover:text-accent/80 hover:underline">
+          View all forms
+          <IconArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
         </Link>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -48,14 +50,14 @@ function QuickActionCard({ action, nowMs }: { action: QuickActionItem; nowMs: nu
     <Link 
       href={href}
       className={`group relative flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm transition-all ${
-        action.isImplemented ? "hover:border-red-200 hover:shadow-md" : "opacity-75 cursor-default"
+        action.isImplemented ? "hover:border-accent/30 hover:shadow-md" : "opacity-75 cursor-default"
       }`}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.isLive ? "bg-red-50 text-red-600" : "bg-muted text-muted-foreground"}`}>
+        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.isImplemented ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
           <Icon className="h-5 w-5" />
         </div>
-        {action.isLive ? (
+        {action.isImplemented ? (
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Live
@@ -94,7 +96,7 @@ function QuickActionCard({ action, nowMs }: { action: QuickActionItem; nowMs: nu
           </div>
         </div>
         {action.isImplemented && (
-          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-red-50 group-hover:text-red-600 transition-colors">
+          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-accent/10 group-hover:text-accent transition-colors">
             <ArrowRight className="h-4 w-4" />
           </div>
         )}

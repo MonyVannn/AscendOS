@@ -80,7 +80,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
 
 function ActivityRow({ log, nowMs }: { log: RecentActivityLog; nowMs: number }) {
   return (
-    <div className={`p-4 sm:px-6 flex items-center justify-between gap-4 transition-colors ${log.success ? "hover:bg-muted/30" : "bg-[#fff5f5]/30 hover:bg-[#fff5f5] dark:bg-red-950/5 dark:hover:bg-red-950/10"}`}>
+    <div className="p-4 sm:px-6 flex items-center justify-between gap-4 transition-colors hover:bg-muted/30">
       <div className="flex items-start gap-3 min-w-0">
         <div className="mt-1 shrink-0">
           {log.success ? (
@@ -93,7 +93,7 @@ function ActivityRow({ log, nowMs }: { log: RecentActivityLog; nowMs: number }) 
             </div>
           )}
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-foreground truncate">{log.toolLabel}</p>
             {log.templateName && (
@@ -102,37 +102,47 @@ function ActivityRow({ log, nowMs }: { log: RecentActivityLog; nowMs: number }) 
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+          <div className="flex items-center gap-1.5 text-[13px] text-muted-foreground mt-0.5">
             <span>by {log.userName}</span>
-            <span className="opacity-50">•</span>
-            <span>{log.contactName}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 shrink-0">
+        <div className="hidden sm:flex items-center gap-3 mr-2">
+          <span className="text-muted-foreground/40 text-sm">→</span>
+          <div className="text-[11px] text-muted-foreground font-mono bg-muted/50 px-2 py-1 rounded-md truncate max-w-[180px]">
+          <span className="truncate">For {log.contactName}</span>
             {!log.success && log.ghlStatus && (
               <>
-                <span className="opacity-50">•</span>
+                <span className="opacity-50">·</span>
                 <span className="text-red-600 font-medium">Error {log.ghlStatus}</span>
               </>
             )}
           </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-4 shrink-0 text-right">
-        <div className="hidden sm:block text-xs text-muted-foreground font-mono truncate max-w-[120px]">
-          {log.success ? "→ success" : log.errorMessage ? `→ ${log.errorMessage}` : "→ failed"}
-        </div>
-        <div className="flex flex-col items-end gap-1.5">
+        
+        <div className="flex items-center gap-3">
           {log.success ? (
-            <Badge className="border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20 uppercase text-[9px] font-bold tracking-wider px-1.5 py-0">
-              Success
+            <Badge className="border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 flex items-center gap-1.5 shadow-none">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              SUCCESS
             </Badge>
           ) : (
-            <Link href="/dashboard/activity-log">
-              <Badge className="border-red-200 bg-white text-red-600 hover:bg-red-50 dark:bg-zinc-950 dark:text-red-400 dark:border-red-900 uppercase text-[9px] font-bold tracking-wider px-1.5 py-0 cursor-pointer">
-                Failed
+            <>
+              <Badge className="border-transparent bg-red-50 text-red-700 hover:bg-red-50 dark:bg-red-500/10 dark:text-red-400 uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 flex items-center gap-1.5 shadow-none">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                FAILED
               </Badge>
-            </Link>
+              <Link href="/dashboard/activity-log">
+                <Badge className="border-transparent bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 text-[11px] font-medium px-2.5 py-0.5 flex items-center gap-1.5 cursor-pointer transition-colors shadow-none">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  Retry
+                </Badge>
+              </Link>
+            </>
           )}
-          <span className="text-[10px] text-muted-foreground font-medium">
+          <span className="text-[12px] text-muted-foreground font-medium min-w-[70px] text-right">
             {formatRelativeTime(log.submittedAt, nowMs)}
           </span>
         </div>

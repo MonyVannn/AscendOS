@@ -44,7 +44,7 @@ export function DashboardGreetingHeader({
           {dateStr} <span className="text-muted-foreground/30">•</span> {formsText} ready to fire
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Good morning, <span className="text-red-500">{firstName}</span>.
+          Good morning, <span className="text-accent">{firstName}</span>.
         </h1>
         <p className="text-muted-foreground max-w-2xl text-sm">
           Your team triggered {metrics.formsTriggered} automations {periodLabel.toLowerCase()} — {metrics.successRate}% success rate.
@@ -72,7 +72,7 @@ export function DashboardGreetingHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" className="h-9 gap-1.5 bg-red-600 hover:bg-red-700 text-white border-0 shadow-sm">
+            <Button size="sm" className="h-9 gap-1.5 bg-accent hover:bg-accent/90 text-accent-foreground border-0 shadow-sm">
               <Plus className="h-4 w-4" />
               New submission
             </Button>

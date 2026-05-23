@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { Calendar } from "@/components/ui/calendar";
+import { IconArrowRight } from "@tabler/icons-react";
 
 export function DashboardScheduledDrips() {
   return (
     <div className="flex flex-col h-full bg-card border border-border rounded-xl shadow-sm overflow-hidden">
       <div className="px-6 py-5 border-b border-border flex items-center justify-between">
         <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Scheduled Drips</h3>
-        <Link href="/dashboard/scheduled-drips" className="text-sm font-medium text-red-600 hover:text-red-700 hover:underline">
-          Calendar →
+        <Link href="/dashboard/scheduled-drips" className="group flex items-center text-sm font-medium text-accent hover-text-accent/80 hover:underline">
+          Calendar 
+          <IconArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
         </Link>
       </div>
       <div className="flex-1 p-6 flex flex-col items-center justify-center relative">

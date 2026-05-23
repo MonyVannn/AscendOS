@@ -146,8 +146,8 @@ export const getSummary = query({
     const priorLogs = allLogs.filter(l => l.submittedAt >= args.priorStartMs && l.submittedAt <= args.priorEndMs);
     const metrics = buildDashboardMetrics(currentLogs, priorLogs);
 
-    // 7. Recent Activity (last 15 logs)
-    const recentActivityLogs = allLogs.slice(0, 15);
+    // 7. Recent Activity (last 10 logs)
+    const recentActivityLogs = allLogs.slice(0, 10);
     
     // Fetch user names for recent activity
     const userIds = new Set(recentActivityLogs.map(l => l.userId));
