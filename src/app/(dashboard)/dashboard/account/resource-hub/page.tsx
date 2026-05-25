@@ -1,8 +1,13 @@
-export default function ResourceHubPage() {
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Resource Hub</h2>
-      <p className="text-muted-foreground">Centralized resources and documents.</p>
-    </div>
-  );
+import { getTenantContext } from "@/lib/tenant";
+import { redirect } from "next/navigation";
+import { ResourceHubPageClient } from "@/components/resource-hub/resource-hub-page-client";
+
+export default async function ResourceHubPage() {
+  const ctx = await getTenantContext();
+  
+  if (!ctx?.agency?._id) {  // If no agency, redirect to pending page
+    redirect("/dashboard");
+  }
+  
+  return <ResourceHubPageClient />;
 }
