@@ -13,9 +13,9 @@ export const INITIAL_FEATURES = [
   {
     key: "field-trainer",
     label: "Field Trainer",
-    description: "Access field training resources",
+    description: "Submit an agent to the production drip",
     pillar: "train",
-    type: "page",
+    type: "smart-form",
     href: "/dashboard/train/field-trainer",
     icon: "graduationCap",
     isActive: true,

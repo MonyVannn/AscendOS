@@ -17,6 +17,7 @@ export const TOOL_NAME_LABELS: Record<string, string> = {
   "email-template": "Email Template",
   "beast-mode-drip": "Beast Mode Drip",
   "onboarding-drip": "Onboarding Drip",
+  "field-trainer": "Field Trainer",
 };
 
 export function getToolNameForFeature(featureKey: string): string | undefined {
@@ -32,7 +33,10 @@ export function getToolDisplayName(toolName: string): string {
 }
 
 /** Features with implemented dashboard pages (MVP). */
-export const IMPLEMENTED_FEATURE_KEYS = new Set(["send-email-template"]);
+export const IMPLEMENTED_FEATURE_KEYS = new Set([
+  "send-email-template",
+  "field-trainer",
+]);
 
 export function isFeatureImplemented(featureKey: string): boolean {
   return IMPLEMENTED_FEATURE_KEYS.has(featureKey);
