@@ -48,6 +48,7 @@ describe("buildFieldTrainerDripPayload", () => {
       bookingLink: "https://book.me",
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = buildFieldTrainerDripPayload(input as any, agent);
 
     expect(payload).toEqual({
