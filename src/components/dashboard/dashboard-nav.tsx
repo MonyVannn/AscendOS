@@ -108,6 +108,7 @@ export function DashboardNav({
 
         {renderSectionHeader("INSIGHTS")}
         <nav className="space-y-1">
+          {renderLink("Field Trainer timeline", "/dashboard/field-trainer-timeline", "columns")}
           {renderLink("Activity log", "/dashboard/activity-log", "activity")}
           {renderLink(
             "Scheduled drips",

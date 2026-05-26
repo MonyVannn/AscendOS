@@ -3,6 +3,7 @@ import {
   BarChart2,
   BookOpen,
   Calendar,
+  Columns3,
   GraduationCap,
   Home,
   Library,
@@ -25,4 +26,5 @@ export const iconMap: Record<string, LucideIcon> = {
   calendar: Calendar,
   settings: Settings,
   mail: Mail,
+  columns: Columns3,
 };

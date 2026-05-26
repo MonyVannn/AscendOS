@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import {
   fieldTrainerNameValidator,
@@ -128,5 +128,46 @@ export const applyEnrollmentFromSubmission = mutation({
     });
 
     return { enrollmentId: enrollment!._id, eventId };
+  },
+});
+
+export const listForTimeline = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!caller || !caller.agencyId) return [];
+
+    const enrollments = await ctx.db
+      .query("fieldTrainerEnrollments")
+      .withIndex("by_agency", (q) => q.eq("agencyId", caller.agencyId!))
+      .collect();
+
+    const activeEnrollments = enrollments.filter(e => e.programStatus !== "withdrawn");
+
+    const result = [];
+    for (const e of activeEnrollments) {
+      const rd = await ctx.db.get(e.assignedRdUserId);
+      
+      result.push({
+        _id: e._id,
+        firstName: e.firstName,
+        phone: e.phone,
+        currentWeek: e.currentWeek,
+        fieldTrainer: e.fieldTrainer,
+        programStatus: e.programStatus,
+        programStartedAt: e.programStartedAt,
+        weekEffectiveAt: e.weekEffectiveAt,
+        assignedRdName: rd?.name || rd?.email || "Unknown",
+      });
+    }
+
+    return result;
   },
 });

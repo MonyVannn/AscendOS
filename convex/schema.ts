@@ -144,6 +144,7 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   })
+    .index("by_agency", ["agencyId"])
     .index("by_agency_and_phone", ["agencyId", "phone"])
     .index("by_agency_and_current_week", ["agencyId", "currentWeek"])
     .index("by_agency_and_field_trainer", ["agencyId", "fieldTrainer"])
