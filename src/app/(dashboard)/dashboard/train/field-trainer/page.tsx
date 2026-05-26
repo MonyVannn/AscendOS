@@ -15,7 +15,7 @@ export default async function FieldTrainerDripPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Field Trainer Drip</h1>
           <p className="text-muted-foreground text-sm max-w-xl">
-            Submit an agent to the production drip — assigns trainer and auto-starts Quick Start Drip.
+            Submit an agent to the production drip — assigns trainer and auto-starts 02-Production Drip (SA) - V3.
           </p>
         </div>
       </div>

@@ -65,21 +65,26 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
     
     setIsSubmitting(true);
     try {
-      // Phase 1 stub: no actual API call
-      console.log("Stub submission payload:", {
-        first_name: firstName,
-        phone,
-        trainer,
+      const res = await fetch("/api/ghl/field-trainer-drip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          phone,
+          trainer,
+        }),
       });
-      
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      toast.success("Submission UI ready — backend connection coming soon");
-      
-      setFirstName("");
-      setPhone("");
-      setTrainer("");
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Production drip started successfully");
+        setFirstName("");
+        setPhone("");
+        setTrainer("");
+      } else {
+        toast.error(data.error || "Failed to start drip");
+      }
     } catch {
       toast.error("Unexpected error. Please try again.");
     } finally {

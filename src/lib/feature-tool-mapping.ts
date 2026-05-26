@@ -3,6 +3,7 @@ export const FEATURE_TO_TOOL_NAME: Record<string, string> = {
   "send-email-template": "email-template",
   "beast-mode-drip": "beast-mode-drip",
   "onboarding-drip": "onboarding-drip",
+  "field-trainer": "field-trainer",
 };
 
 /** Maps feature registry keys to GHL inbound webhook registry keys. */
@@ -10,6 +11,7 @@ export const FEATURE_TO_WEBHOOK_KEY: Record<string, string> = {
   "send-email-template": "send-email-template",
   "beast-mode-drip": "beast-mode-drip",
   "onboarding-drip": "onboarding-drip",
+  "field-trainer": "field-trainer-drip",
 };
 
 /** Human-readable labels for webhook log toolName values. */

@@ -3,9 +3,9 @@ import { auth } from "@clerk/nextjs/server";
 import { fetchQuery, fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import {
-  sendEmailTemplateSchema,
-  buildMergedPayload,
-} from "@/lib/ghl/send-email-template";
+  fieldTrainerDripSchema,
+  buildFieldTrainerDripPayload,
+} from "@/lib/ghl/field-trainer-drip";
 import { postGhlWithRetry, logSubmission } from "@/lib/ghl/webhook-client";
 
 export async function POST(req: Request) {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       ),
       fetchQuery(
         api.ghlInbound.readInboundWebhookUrl,
-        { key: "send-email-template" },
+        { key: "field-trainer-drip" },
         { token: token ?? undefined }
       )
     ]);
@@ -43,14 +43,6 @@ export async function POST(req: Request) {
 
     const { user, agency } = tenant;
 
-    // Check profile completeness
-    if (!user.name?.trim() || !user.email?.trim() || !user.bookingLink?.trim()) {
-      return NextResponse.json(
-        { error: "Your profile is incomplete. Update your settings before sending." },
-        { status: 422 }
-      );
-    }
-
     let body;
     try {
       body = await req.json();
@@ -58,7 +50,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const parsed = sendEmailTemplateSchema.safeParse(body);
+    const parsed = fieldTrainerDripSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid input", details: parsed.error.format() },
@@ -69,9 +61,9 @@ export async function POST(req: Request) {
     const timeoutMs = parseInt(process.env.GHL_REQUEST_TIMEOUT_MS || "5000", 10);
     const retryDelayMs = parseInt(process.env.GHL_RETRY_DELAY_MS || "1000", 10);
 
-    const payload = buildMergedPayload(
+    const payload = buildFieldTrainerDripPayload(
       parsed.data,
-      { name: user.name, email: user.email, bookingLink: user.bookingLink }
+      { name: user.name || "", email: user.email || "", bookingLink: user.bookingLink || "" }
     );
 
     const startTime = Date.now();
@@ -83,8 +75,8 @@ export async function POST(req: Request) {
       agency_id: agency?.slug,
       user_id: userId,
       destination: "ghl_inbound_webhook",
-      integration_key: "send-email-template",
-      template: parsed.data.dgemailtemplate,
+      integration_key: "field-trainer-drip",
+      template: parsed.data.trainer,
       ghl_status: result.status,
       retry: result.retry,
       latency_ms,
@@ -95,9 +87,9 @@ export async function POST(req: Request) {
         await fetchMutation(api.activityLog.recordSubmission, {
           agencyId: agency._id,
           userId: user._id,
-          toolName: "email-template",
-          templateName: parsed.data.dgemailtemplate,
-          contactEmail: parsed.data.email,
+          toolName: "field-trainer",
+          templateName: parsed.data.trainer,
+          contactEmail: parsed.data.phone, // Reusing email column for the contact identifier
           contactName: parsed.data.first_name,
           ghlStatus: result.status ?? 0,
           success: result.ok,
@@ -126,7 +118,7 @@ export async function POST(req: Request) {
       { status: 502 }
     );
   } catch (error) {
-    console.error("Unexpected error in send-email-template proxy:", error);
+    console.error("Unexpected error in field-trainer-drip proxy:", error);
     return NextResponse.json(
       { error: "Unexpected error. Contact support." },
       { status: 500 }

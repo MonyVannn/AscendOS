@@ -5,6 +5,12 @@ export const GHL_INBOUND_WEBHOOK_KEYS = [
     description:
       "Powers the Send Email Template tool in the RD dashboard.",
   },
+  {
+    key: "field-trainer-drip",
+    label: "Field Trainer Drip",
+    description:
+      "Powers the Field Trainer Drip tool in the RD dashboard. Payload includes field_trainer_start_trigger for inbound branching (production drip = Production Drip Form Submitted).",
+  },
 ] as const;
 
 export type GhlInboundWebhookKey =
