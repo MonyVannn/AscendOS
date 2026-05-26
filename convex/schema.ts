@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { fieldTrainerNameValidator, fieldTrainerEventTypeValidator } from "./fieldTrainerValidators";
 
 export default defineSchema({
   agencies: defineTable({
@@ -127,4 +128,37 @@ export default defineSchema({
   })
     .index("by_agency", ["agencyId"])
     .index("by_agency_and_feature", ["agencyId", "featureId"]),
+
+  fieldTrainerEnrollments: defineTable({
+    agencyId: v.id("agencies"),
+    phone: v.string(),
+    firstName: v.string(),
+    programStatus: v.union(v.literal("active"), v.literal("completed"), v.literal("withdrawn")),
+    startWeek: v.number(),
+    currentWeek: v.number(),
+    fieldTrainer: fieldTrainerNameValidator,
+    assignedRdUserId: v.id("users"),
+    programStartedAt: v.number(),
+    weekEffectiveAt: v.optional(v.number()),
+    ghlContactId: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_agency_and_phone", ["agencyId", "phone"])
+    .index("by_agency_and_current_week", ["agencyId", "currentWeek"])
+    .index("by_agency_and_field_trainer", ["agencyId", "fieldTrainer"])
+    .index("by_agency_and_assigned_rd", ["agencyId", "assignedRdUserId"]),
+
+  fieldTrainerEvents: defineTable({
+    agencyId: v.id("agencies"),
+    enrollmentId: v.id("fieldTrainerEnrollments"),
+    eventType: fieldTrainerEventTypeValidator,
+    performedByUserId: v.id("users"),
+    week: v.optional(v.number()),
+    fieldTrainer: v.optional(fieldTrainerNameValidator),
+    webhookLogId: v.optional(v.id("webhookLogs")),
+    occurredAt: v.number(),
+  })
+    .index("by_enrollment", ["enrollmentId"])
+    .index("by_agency_and_occurred", ["agencyId", "occurredAt"]),
 });

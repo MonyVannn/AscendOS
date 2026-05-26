@@ -7,6 +7,7 @@ import {
   buildFieldTrainerDripPayload,
 } from "@/lib/ghl/field-trainer-drip";
 import { postGhlWithRetry, logSubmission } from "@/lib/ghl/webhook-client";
+import { FIELD_TRAINER_FORM_LABELS } from "@/lib/ghl/field-trainer-forms";
 
 export async function POST(req: Request) {
   try {
@@ -76,7 +77,7 @@ export async function POST(req: Request) {
       user_id: userId,
       destination: "ghl_inbound_webhook",
       integration_key: "field-trainer-drip",
-      template: parsed.data.trainer,
+      template: FIELD_TRAINER_FORM_LABELS.startProduction,
       ghl_status: result.status,
       retry: result.retry,
       latency_ms,
@@ -84,11 +85,11 @@ export async function POST(req: Request) {
 
     if (agency) {
       try {
-        await fetchMutation(api.activityLog.recordSubmission, {
+        const logResult = await fetchMutation(api.activityLog.recordSubmission, {
           agencyId: agency._id,
           userId: user._id,
           toolName: "field-trainer",
-          templateName: parsed.data.trainer,
+          templateName: FIELD_TRAINER_FORM_LABELS.startProduction,
           contactEmail: parsed.data.phone, // Reusing email column for the contact identifier
           contactName: parsed.data.first_name,
           ghlStatus: result.status ?? 0,
@@ -97,8 +98,20 @@ export async function POST(req: Request) {
           errorMessage: result.ok ? undefined : result.errorMessage,
           latencyMs: latency_ms,
         }, { token: token ?? undefined });
+
+        if (result.ok) {
+          await fetchMutation(api.fieldTrainer.applyEnrollmentFromSubmission, {
+            agencyId: agency._id,
+            userId: user._id,
+            phone: parsed.data.phone,
+            firstName: parsed.data.first_name,
+            eventType: "started_production_drip",
+            fieldTrainer: parsed.data.trainer as any,
+            webhookLogId: logResult.id,
+          }, { token: token ?? undefined });
+        }
       } catch (logErr) {
-        console.error("Failed to record submission log in Convex:", logErr);
+        console.error("Failed to record submission or enrollment in Convex:", logErr);
       }
     }
 

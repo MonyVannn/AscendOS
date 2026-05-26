@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   sendEmailTemplateSchema,
   buildMergedPayload,
-  postGhlWithRetry,
 } from "./send-email-template";
+import { postGhlWithRetry } from "./webhook-client";
 
 describe("sendEmailTemplateSchema", () => {
   it("validates correct input", () => {

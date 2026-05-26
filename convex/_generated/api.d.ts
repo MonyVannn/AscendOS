@@ -13,6 +13,8 @@ import type * as admin from "../admin.js";
 import type * as dashboard from "../dashboard.js";
 import type * as featureRegistry from "../featureRegistry.js";
 import type * as features from "../features.js";
+import type * as fieldTrainer from "../fieldTrainer.js";
+import type * as fieldTrainerValidators from "../fieldTrainerValidators.js";
 import type * as ghlInbound from "../ghlInbound.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
@@ -32,6 +34,8 @@ declare const fullApi: ApiFromModules<{
   dashboard: typeof dashboard;
   featureRegistry: typeof featureRegistry;
   features: typeof features;
+  fieldTrainer: typeof fieldTrainer;
+  fieldTrainerValidators: typeof fieldTrainerValidators;
   ghlInbound: typeof ghlInbound;
   http: typeof http;
   seed: typeof seed;
