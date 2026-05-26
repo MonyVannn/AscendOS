@@ -11,6 +11,12 @@ export const GHL_INBOUND_WEBHOOK_KEYS = [
     description:
       "Powers the Field Trainer Drip and Reassign tools in the RD dashboard. Payload includes field_trainer_start_trigger for inbound branching (Production Drip Form Submitted or Reassign Trainer Form Submitted).",
   },
+  {
+    key: "field-trainer-reposition",
+    label: "Field Trainer Reposition",
+    description:
+      "Powers the Reposition Agent tool (form 3) in the RD dashboard.",
+  },
 ] as const;
 
 export type GhlInboundWebhookKey =
