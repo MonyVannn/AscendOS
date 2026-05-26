@@ -4,6 +4,7 @@ import { FIELD_TRAINER_OPTIONS } from "./field-trainer-options";
 const trainerValues = FIELD_TRAINER_OPTIONS.map((t) => t.value) as [string, ...string[]];
 
 export const FIELD_TRAINER_START_TRIGGER_PRODUCTION_DRIP = "Production Drip Form Submitted";
+export const FIELD_TRAINER_START_TRIGGER_REASSIGN = "Reassign Trainer Form Submitted";
 
 export const fieldTrainerDripSchema = z.object({
   first_name: z.string().trim().min(1, "First name is required"),
@@ -15,17 +16,32 @@ export const fieldTrainerDripSchema = z.object({
 
 export type FieldTrainerDripInput = z.infer<typeof fieldTrainerDripSchema>;
 
-export function buildFieldTrainerDripPayload(
+export function buildFieldTrainerPayload(
   input: FieldTrainerDripInput,
-  agent: { name: string; email: string; bookingLink: string }
+  agent: { name: string; email: string; bookingLink: string },
+  trigger: string
 ) {
   return {
     first_name: input.first_name,
     phone: input.phone,
-    field_trainer_start_trigger: FIELD_TRAINER_START_TRIGGER_PRODUCTION_DRIP,
+    field_trainer_start_trigger: trigger,
     "contact.field_trainer": input.trainer,
     "contact.assigned_agent_name": agent.name,
     "contact.assigned_agent_email": agent.email,
     "contact.assigned_agent_booking_link": agent.bookingLink,
   };
+}
+
+export function buildFieldTrainerDripPayload(
+  input: FieldTrainerDripInput,
+  agent: { name: string; email: string; bookingLink: string }
+) {
+  return buildFieldTrainerPayload(input, agent, FIELD_TRAINER_START_TRIGGER_PRODUCTION_DRIP);
+}
+
+export function buildFieldTrainerReassignPayload(
+  input: FieldTrainerDripInput,
+  agent: { name: string; email: string; bookingLink: string }
+) {
+  return buildFieldTrainerPayload(input, agent, FIELD_TRAINER_START_TRIGGER_REASSIGN);
 }

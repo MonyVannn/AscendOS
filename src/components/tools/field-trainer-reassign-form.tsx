@@ -65,12 +65,32 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
     
     setIsSubmitting(true);
     try {
-      // Stub submit behavior as requested
-      toast.info("Reassign trainer is coming soon");
+      const res = await fetch("/api/ghl/field-trainer-reassign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: firstName,
+          phone,
+          trainer,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Trainer reassigned successfully");
+        setFirstName("");
+        setPhone("");
+        setTrainer("");
+      } else {
+        toast.error(data.error || "Failed to reassign trainer");
+      }
+    } catch {
+      toast.error("Unexpected error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting]);
+  }, [isFormValid, isSubmitting, firstName, phone, trainer]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -269,7 +289,7 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
           <div className="flex items-center justify-between mt-4 text-[11px] text-muted-foreground px-1">
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-3 h-3" />
-              <span>Will fire through GHL · <strong className="font-medium text-foreground/80">{agency.slug}</strong> workspace (backend pending)</span>
+              <span>Will fire through GHL · <strong className="font-medium text-foreground/80">{agency.slug}</strong> workspace</span>
             </div>
             <div className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 rounded border border-border bg-muted/50 font-sans font-medium text-[10px]">⌘</kbd>

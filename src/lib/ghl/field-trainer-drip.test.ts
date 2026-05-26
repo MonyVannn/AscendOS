@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   fieldTrainerDripSchema,
   buildFieldTrainerDripPayload,
+  buildFieldTrainerReassignPayload,
   FIELD_TRAINER_START_TRIGGER_PRODUCTION_DRIP,
+  FIELD_TRAINER_START_TRIGGER_REASSIGN,
 } from "./field-trainer-drip";
 
 describe("fieldTrainerDripSchema", () => {
@@ -55,6 +57,34 @@ describe("buildFieldTrainerDripPayload", () => {
       first_name: "John",
       phone: "555-1234",
       field_trainer_start_trigger: FIELD_TRAINER_START_TRIGGER_PRODUCTION_DRIP,
+      "contact.field_trainer": "Jon",
+      "contact.assigned_agent_name": "Agent Smith",
+      "contact.assigned_agent_email": "agent@example.com",
+      "contact.assigned_agent_booking_link": "https://book.me",
+    });
+  });
+});
+
+describe("buildFieldTrainerReassignPayload", () => {
+  it("maps fields correctly", () => {
+    const input = {
+      first_name: "John",
+      phone: "555-1234",
+      trainer: "Jon",
+    };
+    const agent = {
+      name: "Agent Smith",
+      email: "agent@example.com",
+      bookingLink: "https://book.me",
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const payload = buildFieldTrainerReassignPayload(input as any, agent);
+
+    expect(payload).toEqual({
+      first_name: "John",
+      phone: "555-1234",
+      field_trainer_start_trigger: FIELD_TRAINER_START_TRIGGER_REASSIGN,
       "contact.field_trainer": "Jon",
       "contact.assigned_agent_name": "Agent Smith",
       "contact.assigned_agent_email": "agent@example.com",
