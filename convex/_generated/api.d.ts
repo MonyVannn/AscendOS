@@ -19,6 +19,7 @@ import type * as ghlInbound from "../ghlInbound.js";
 import type * as http from "../http.js";
 import type * as resourceHub from "../resourceHub.js";
 import type * as resourceHubValidators from "../resourceHubValidators.js";
+import type * as resourceShares from "../resourceShares.js";
 import type * as roles from "../roles.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   resourceHub: typeof resourceHub;
   resourceHubValidators: typeof resourceHubValidators;
+  resourceShares: typeof resourceShares;
   roles: typeof roles;
   seed: typeof seed;
   settings: typeof settings;

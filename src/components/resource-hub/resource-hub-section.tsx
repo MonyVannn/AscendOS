@@ -10,9 +10,10 @@ interface ResourceHubSectionProps {
   items: ResourceItem[];
   onAddResource: (category: ResourceCategory) => void;
   onViewResource?: (id: string) => void;
+  onShareResource?: (resource: ResourceItem) => void;
 }
 
-export function ResourceHubSection({ category, title, items, onAddResource, onViewResource }: ResourceHubSectionProps) {
+export function ResourceHubSection({ category, title, items, onAddResource, onViewResource, onShareResource }: ResourceHubSectionProps) {
   if (items.length === 0) return null;
 
   let Icon = FileText;
@@ -48,7 +49,12 @@ export function ResourceHubSection({ category, title, items, onAddResource, onVi
       
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => (
-          <ResourceHubCard key={item.id} resource={item} onView={onViewResource ? () => onViewResource(item.id) : undefined} />
+          <ResourceHubCard 
+            key={item.id} 
+            resource={item} 
+            onView={onViewResource ? () => onViewResource(item.id) : undefined} 
+            onShare={onShareResource ? () => onShareResource(item) : undefined}
+          />
         ))}
       </div>
     </div>

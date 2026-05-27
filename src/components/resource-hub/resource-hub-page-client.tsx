@@ -8,23 +8,27 @@ import { ResourceHubFilters, ResourceFilterTab } from "./resource-hub-filters";
 import { ResourceHubSection } from "./resource-hub-section";
 import { AddResourceSheet } from "./add-resource-sheet";
 import { ResourcePreviewSheet } from "./resource-preview-sheet";
-import { ResourceCategory } from "@/lib/resource-hub/types";
+import { ShareResourceSheet } from "./share-resource-sheet";
+import { ResourceNudgeList } from "./resource-nudge-list";
+import { ResourceCategory, ResourceItem } from "@/lib/resource-hub/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Id } from "@/convex/_generated/dataModel";
 
 export function ResourceHubPageClient() {
   const { isAuthenticated } = useConvexAuth();
   const rawResources = useQuery(api.resourceHub.listResources, isAuthenticated ? {} : "skip");
+  const shareStats = useQuery(api.resourceShares.getShareStatsForAgency, isAuthenticated ? {} : "skip");
   
   const [activeTab, setActiveTab] = React.useState<ResourceFilterTab>("all");
   const [searchQuery, setSearchQuery] = React.useState("");
   const [addSheetOpen, setAddSheetOpen] = React.useState(false);
   const [addCategory, setAddCategory] = React.useState<ResourceCategory>("document");
   const [previewResourceId, setPreviewResourceId] = React.useState<Id<"resources"> | null>(null);
+  const [shareResource, setShareResource] = React.useState<ResourceItem | null>(null);
 
   // Calculate totals
   const totalItems = rawResources?.length || 0;
-  const totalShares = rawResources?.reduce((sum, item) => sum + item.shareCount, 0) || 0;
+  const totalShares = shareStats?.monthlyShares || 0;
 
   // Calculate counts for tabs
   const counts = React.useMemo(() => {
@@ -89,6 +93,8 @@ export function ResourceHubPageClient() {
     <div className="mx-auto max-w-screen-xl py-8 px-4 sm:px-6 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <ResourceHubHeader totalItems={totalItems} totalShares={totalShares} onAddResource={() => handleAddResource()} />
       
+      <ResourceNudgeList />
+
       <ResourceHubFilters 
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -107,19 +113,19 @@ export function ResourceHubPageClient() {
       ) : (
         <div className="space-y-10">
           {(activeTab === "all" || activeTab === "audio") && (
-            <ResourceHubSection category="audio" title="Audio" items={ouItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
+            <ResourceHubSection category="audio" title="Audio" items={ouItems} onAddResource={handleAddResource} onViewResource={(id) => setPreviewResourceId(id as Id<"resources">)} onShareResource={setShareResource} />
           )}
           
           {(activeTab === "all" || activeTab === "document") && (
-            <ResourceHubSection category="document" title="Documents" items={documentItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
+            <ResourceHubSection category="document" title="Documents" items={documentItems} onAddResource={handleAddResource} onViewResource={(id) => setPreviewResourceId(id as Id<"resources">)} onShareResource={setShareResource} />
           )}
           
           {(activeTab === "all" || activeTab === "video") && (
-            <ResourceHubSection category="video" title="Videos" items={videoItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
+            <ResourceHubSection category="video" title="Videos" items={videoItems} onAddResource={handleAddResource} onViewResource={(id) => setPreviewResourceId(id as Id<"resources">)} onShareResource={setShareResource} />
           )}
           
           {(activeTab === "all" || activeTab === "image") && (
-            <ResourceHubSection category="image" title="Images" items={imageItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
+            <ResourceHubSection category="image" title="Images" items={imageItems} onAddResource={handleAddResource} onViewResource={(id) => setPreviewResourceId(id as Id<"resources">)} onShareResource={setShareResource} />
           )}
         </div>
       )}
@@ -136,6 +142,14 @@ export function ResourceHubPageClient() {
           if (!open) setPreviewResourceId(null);
         }}
         resourceId={previewResourceId}
+      />
+
+      <ShareResourceSheet
+        open={shareResource !== null}
+        onOpenChange={(open) => {
+          if (!open) setShareResource(null);
+        }}
+        resource={shareResource}
       />
     </div>
   );

@@ -194,4 +194,28 @@ export default defineSchema({
   })
     .index("by_agency", ["agencyId"])
     .index("by_agency_and_category", ["agencyId", "category"]),
+
+  resourceShares: defineTable({
+    agencyId: v.id("agencies"),
+    resourceId: v.id("resources"),
+    token: v.string(),
+    shareType: v.union(v.literal("link"), v.literal("contact")),
+    sharedByUserId: v.id("users"),
+    sharedAt: v.number(),
+
+    // contact mode only
+    contactEmail: v.optional(v.string()),
+    contactName: v.optional(v.string()),
+
+    // lifecycle
+    revokedAt: v.optional(v.number()),
+
+    // engagement (v1)
+    openedAt: v.optional(v.number()),
+    openCount: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_token", ["token"])
+    .index("by_resource", ["resourceId"])
+    .index("by_agency_shared_at", ["agencyId", "sharedAt"]),
 });

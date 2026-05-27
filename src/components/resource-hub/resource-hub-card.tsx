@@ -8,9 +8,10 @@ import { Users, Upload, Eye, Headphones, FileText, PlaySquare, Image as ImageIco
 interface ResourceHubCardProps {
   resource: ResourceItem;
   onView?: () => void;
+  onShare?: () => void;
 }
 
-export function ResourceHubCard({ resource, onView }: ResourceHubCardProps) {
+export function ResourceHubCard({ resource, onView, onShare }: ResourceHubCardProps) {
   const tagColor = RESOURCE_TAGS.find(t => t.label === resource.tag)?.color || "bg-zinc-500";
 
   let Icon = FileText;
@@ -79,7 +80,11 @@ export function ResourceHubCard({ resource, onView }: ResourceHubCardProps) {
               View
             </Button>
           )}
-          <Button size="sm" className="h-8 px-3 text-xs bg-accent hover:bg-accent/90 text-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white" disabled title="Coming soon">
+          <Button 
+            size="sm" 
+            className="h-8 px-3 text-xs bg-accent hover:bg-accent/90 text-foreground dark:bg-red-600 dark:hover:bg-red-700 dark:text-white" 
+            onClick={onShare}
+          >
             <Upload className="h-3.5 w-3.5 mr-1.5" />
             Share
           </Button>
