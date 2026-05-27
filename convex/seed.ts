@@ -301,3 +301,19 @@ export const backfillAgencyFeaturesFromLegacy = internalMutation({
     return { patched, total: agencies.length };
   }
 });
+
+export const fixSuperAdminAgencyId = internalMutation({
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    let patched = 0;
+
+    for (const user of users) {
+      if (user.role === "SUPER_ADMIN" && user.agencyId !== undefined) {
+        await ctx.db.patch(user._id, { agencyId: undefined });
+        patched++;
+      }
+    }
+
+    return { patched };
+  }
+});

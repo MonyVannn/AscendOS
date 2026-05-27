@@ -15,6 +15,7 @@ import {
   FileText,
   LogOut,
   User,
+  ShieldAlert,
 } from "lucide-react";
 
 import { TenantContext } from "@/lib/tenant";
@@ -56,6 +57,7 @@ export function AdminSidebar({ tenant }: AdminSidebarProps) {
   ];
 
   const systemNav = [
+    { name: "Platform Admins", href: "/admin/platform-admins", icon: ShieldAlert },
     { name: "Settings", href: "/admin/settings", icon: Settings },
     { name: "Audit Trail", href: "/admin/audit", icon: FileText },
   ];

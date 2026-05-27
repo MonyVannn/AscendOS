@@ -8,6 +8,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { AssignHeader } from "@/components/admin/assign/assign-header";
 import { AssignUserList } from "@/components/admin/assign/assign-user-list";
 import { AssignPanel } from "@/components/admin/assign/assign-panel";
+import { AgencyRole } from "@/lib/roles";
 
 export default function AssignPage() {
   const { isAuthenticated } = useConvexAuth();
@@ -19,7 +20,7 @@ export default function AssignPage() {
 
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [selectedAgencyId, setSelectedAgencyId] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<"RD" | "SUPER_ADMIN">("RD");
+  const [selectedRole, setSelectedRole] = useState<AgencyRole>("RD");
   const [isAssigning, setIsAssigning] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 

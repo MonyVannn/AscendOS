@@ -9,6 +9,7 @@ interface Agency {
   slug: string;
   enabledFeatures: { key: string; label: string }[];
   rdCount: number;
+  memberCount: number;
   featureCount: number;
   webhookCount: number;
   status: "ACTIVE" | "ONBOARDING";
@@ -34,9 +35,8 @@ export function AgencyCard({ agency }: { agency: Agency }) {
   };
 
   return (
-    <Link
-      href={`/admin/agencies/${agency._id}`}
-      className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900/50 transition-all duration-300 group"
+    <div
+      className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 hover:shadow-md transition-all duration-300 group"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
@@ -69,10 +69,10 @@ export function AgencyCard({ agency }: { agency: Agency }) {
       <div className="flex items-stretch dark:border-zinc-800">
         <div className="min-w-0 flex-1 px-3 first:pl-0">
           <div className="text-2xl font-bold text-zinc-950 dark:text-zinc-50">
-            {agency.rdCount}
+            {agency.memberCount}
           </div>
           <div className="text-[10px] font-bold tracking-wider text-zinc-500 uppercase mt-1">
-            RDS
+            MEMBERS
           </div>
         </div>
         <Separator orientation="vertical" />
@@ -110,10 +110,15 @@ export function AgencyCard({ agency }: { agency: Agency }) {
               </Badge>
             ))}
         </div>
-        <p className="mt-4 text-xs font-medium text-blue-600 group-hover:text-blue-700 dark:text-blue-400">
-          Manage webhooks →
-        </p>
+        <div className="mt-4 flex gap-4">
+          <Link href={`/admin/agencies/${agency._id}`} className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+            Manage webhooks →
+          </Link>
+          <Link href={`/admin/agencies/${agency._id}/team`} className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+            Manage team →
+          </Link>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }

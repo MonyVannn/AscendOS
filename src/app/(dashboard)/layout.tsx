@@ -3,6 +3,7 @@ import { getTenantContext } from "@/lib/tenant";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import packageJson from "../../../package.json";
+import { isDashboardRole } from "@/lib/roles";
 
 export default async function DashboardLayout({
   children,
@@ -19,7 +20,7 @@ export default async function DashboardLayout({
     redirect("/admin");
   }
 
-  if (!tenant.agency) {
+  if (!tenant.agency || !isDashboardRole(tenant.user?.role)) {
     redirect("/pending");
   }
 

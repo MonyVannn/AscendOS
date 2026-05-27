@@ -1,6 +1,7 @@
 import React from "react";
 import { TenantContext } from "./tenant";
 import { resolveAgencyTheme } from "./agency-theme-resolve";
+import { canUseAgencyTheme } from "./roles";
 
 // Helper to determine contrasting text color (black or white) based on hex background
 export function getContrastingForeground(hexColor: string): string {
@@ -57,9 +58,9 @@ export function buildAgencyThemeStyle(
   theme: Partial<NonNullable<TenantContext>["theme"]> | undefined,
   role?: string
 ): React.CSSProperties {
-  // If no theme or not an RD, we don't apply overrides.
+  // If no theme or not an agency role, we don't apply overrides.
   // The system will fall back to globals.css defaults.
-  if (!theme || !theme.primaryColor || role !== "RD") return {};
+  if (!theme || !theme.primaryColor || !canUseAgencyTheme(role)) return {};
   
   const resolved = resolveAgencyTheme(theme);
   if (!resolved) return {};

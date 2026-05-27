@@ -73,7 +73,7 @@ describe("resolveRootHubPath", () => {
     expect(resolveRootHubPath(tenant)).toBe("/pending");
   });
 
-  it('returns "/dashboard" when agency is present', () => {
+  it('returns "/dashboard" when agency is present with RD role', () => {
     const agency = makeSanitizedAgency({ _id: agencyId });
     const tenant = makeTenant({
       agency,
@@ -82,6 +82,37 @@ describe("resolveRootHubPath", () => {
         _creationTime: 1700000000,
         clerkId: "user_clerk_test",
         agencyId,
+        role: "RD",
+      } as TenantContext["user"],
+    });
+    expect(resolveRootHubPath(tenant)).toBe("/dashboard");
+  });
+
+  it('returns "/dashboard" when agency is present with MD role', () => {
+    const agency = makeSanitizedAgency({ _id: agencyId });
+    const tenant = makeTenant({
+      agency,
+      user: {
+        _id: userId,
+        _creationTime: 1700000000,
+        clerkId: "user_clerk_test",
+        agencyId,
+        role: "MD",
+      } as TenantContext["user"],
+    });
+    expect(resolveRootHubPath(tenant)).toBe("/dashboard");
+  });
+
+  it('returns "/dashboard" when agency is present with AGENT role', () => {
+    const agency = makeSanitizedAgency({ _id: agencyId });
+    const tenant = makeTenant({
+      agency,
+      user: {
+        _id: userId,
+        _creationTime: 1700000000,
+        clerkId: "user_clerk_test",
+        agencyId,
+        role: "AGENT",
       } as TenantContext["user"],
     });
     expect(resolveRootHubPath(tenant)).toBe("/dashboard");

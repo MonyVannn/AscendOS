@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect } from "react";
 import { TenantContext } from "@/lib/tenant";
 import { AGENCY_THEME_DOCUMENT_VARS } from "@/lib/agency-theme-css-vars";
+import { canUseAgencyTheme } from "@/lib/roles";
 
 interface AgencyThemeHydrationProps {
   tenant: TenantContext | null;
@@ -11,13 +12,13 @@ interface AgencyThemeHydrationProps {
 export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
   // We use useLayoutEffect to run synchronously before paint on client navigations
   useLayoutEffect(() => {
-    if (!tenant?.agency || tenant.user?.role !== "RD") {
-      // Clear all theme variables if we are not in an RD session with an agency
+    if (!tenant?.agency || !canUseAgencyTheme(tenant.user?.role)) {
+      // Clear all theme variables if we are not in an agency session
       const html = document.documentElement;
       AGENCY_THEME_DOCUMENT_VARS.forEach(v => {
         html.style.removeProperty(v);
       });
-      // Also reset favicon to default if not an RD
+      // Also reset favicon to default if not an agency role
       const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
       if (link && link.href !== window.location.origin + "/favicon.ico") {
         link.href = "/favicon.ico";
@@ -52,7 +53,7 @@ export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
 
   // We use useEffect to save the current theme to cache after render
   useEffect(() => {
-    if (!tenant?.agency || tenant.user?.role !== "RD") return;
+    if (!tenant?.agency || !canUseAgencyTheme(tenant.user?.role)) return;
 
     const cacheKey = `theme:${tenant.agency._id}`;
     
@@ -77,7 +78,7 @@ export function AgencyThemeHydration({ tenant }: AgencyThemeHydrationProps) {
 
   // Update favicon if the tenant has a custom one
   useEffect(() => {
-    if (!tenant?.agency || tenant.user?.role !== "RD" || !tenant.theme?.faviconUrl) return;
+    if (!tenant?.agency || !canUseAgencyTheme(tenant.user?.role) || !tenant.theme?.faviconUrl) return;
 
     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
     if (!link) {

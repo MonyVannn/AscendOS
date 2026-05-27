@@ -2,11 +2,13 @@ import { query, mutation, type QueryCtx, type MutationCtx } from "./_generated/s
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
+import { agencyRoleValidator } from "./roles";
+
 export const assignUserToAgency = mutation({
   args: {
     clerkId: v.string(),
     agencyId: v.id("agencies"),
-    role: v.union(v.literal("RD"), v.literal("SUPER_ADMIN")),
+    role: agencyRoleValidator,
   },
   handler: async (ctx, { clerkId, agencyId, role }) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -34,22 +36,52 @@ export const assignUserToAgency = mutation({
   },
 });
 
+export const promoteToSuperAdmin = mutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, { clerkId }) => {
+    await requireSuperAdmin(ctx);
+
+    const target = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", clerkId))
+      .unique();
+
+    if (!target) throw new Error("User not found");
+
+    await ctx.db.patch(target._id, { role: "SUPER_ADMIN", agencyId: undefined });
+
+    return { success: true };
+  },
+});
+
+export const revokeSuperAdmin = mutation({
+  args: { clerkId: v.string() },
+  handler: async (ctx, { clerkId }) => {
+    await requireSuperAdmin(ctx);
+
+    const target = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", clerkId))
+      .unique();
+
+    if (!target) throw new Error("User not found");
+
+    if (target.role !== "SUPER_ADMIN") {
+      throw new Error("User is not a Super Admin");
+    }
+
+    await ctx.db.patch(target._id, { role: undefined, agencyId: undefined });
+
+    return { success: true };
+  },
+});
+
 export const listUnprovisionedUsers = query({
   args: {
     refreshNonce: v.optional(v.number()),
   },
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (!caller || caller.role !== "SUPER_ADMIN") {
-      throw new Error("Unauthorized");
-    }
+    await requireSuperAdmin(ctx);
 
     return await ctx.db
       .query("users")
@@ -63,19 +95,54 @@ export const listUnprovisionedUsers = query({
   },
 });
 
+export const listPlatformAdmins = query({
+  args: {
+    refreshNonce: v.optional(v.number()),
+  },
+  handler: async (ctx) => {
+    await requireSuperAdmin(ctx);
+
+    return await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("role"), "SUPER_ADMIN"))
+      .collect();
+  },
+});
+
+export const listAgencyMembers = query({
+  args: { agencyId: v.id("agencies") },
+  handler: async (ctx, { agencyId }) => {
+    await requireSuperAdmin(ctx);
+
+    return await ctx.db
+      .query("users")
+      .withIndex("by_agency", (q) => q.eq("agencyId", agencyId))
+      .collect();
+  },
+});
+
+export const updateAgencyMemberRole = mutation({
+  args: {
+    userId: v.id("users"),
+    role: agencyRoleValidator,
+  },
+  handler: async (ctx, { userId, role }) => {
+    await requireSuperAdmin(ctx);
+
+    const target = await ctx.db.get(userId);
+    if (!target) throw new Error("User not found");
+    if (target.role === "SUPER_ADMIN") throw new Error("Cannot change role of Super Admin");
+    if (!target.agencyId) throw new Error("User does not belong to an agency");
+
+    await ctx.db.patch(target._id, { role });
+
+    return { success: true };
+  },
+});
+
 export const listAgencies = query({
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthenticated");
-
-    const caller = await ctx.db
-      .query("users")
-      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
-      .unique();
-
-    if (!caller || caller.role !== "SUPER_ADMIN") {
-      throw new Error("Unauthorized");
-    }
+    await requireSuperAdmin(ctx);
 
     const agencies = await ctx.db.query("agencies").collect();
     
@@ -92,6 +159,7 @@ export const listAgencies = query({
       const { ghlAccessToken, ghlApiKey, ghlWebhookUrl, ...safeAgency } = a;
       
       const rdCount = allUsers.filter(u => u.agencyId === a._id && u.role === "RD").length;
+      const memberCount = allUsers.filter(u => u.agencyId === a._id && (u.role === "RD" || u.role === "MD" || u.role === "AGENT")).length;
       const agencyFeatureJoins = allAgencyFeatures.filter(af => af.agencyId === a._id && af.isEnabled);
       const webhookCount = allWebhookLogs.filter(w => w.agencyId === a._id).length;
       
@@ -113,6 +181,7 @@ export const listAgencies = query({
       return {
         ...safeAgency,
         rdCount,
+        memberCount,
         featureCount: enabledFeatures.length,
         webhookCount,
         status,

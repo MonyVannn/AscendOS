@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { AgencyRole, AGENCY_ROLES, ROLE_LABELS } from "@/lib/roles";
 
 interface User {
   clerkId: string;
@@ -27,8 +28,8 @@ interface AssignPanelProps {
   agencies: Agency[];
   selectedAgencyId: string;
   onSelectAgency: (id: string) => void;
-  selectedRole: "RD" | "SUPER_ADMIN";
-  onSelectRole: (role: "RD" | "SUPER_ADMIN") => void;
+  selectedRole: AgencyRole;
+  onSelectRole: (role: AgencyRole) => void;
   onConfirm: () => void;
   isAssigning: boolean;
 }
@@ -146,54 +147,35 @@ export function AssignPanel({
               Role
             </label>
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              2 Options
+              {AGENCY_ROLES.length} Options
             </span>
           </div>
-          <div className="flex rounded-md shadow-sm">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!user}
-              onClick={() => onSelectRole("RD")}
-              className={cn(
-                "flex-1 flex-col gap-0.5 rounded-none rounded-l-md py-2 shadow-none font-normal h-auto min-h-11 border-zinc-200 dark:border-zinc-800",
-                selectedRole === "RD"
-                  ? "bg-white dark:bg-zinc-900 z-10 font-semibold shadow-sm dark:border-zinc-700"
-                  : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900",
-              )}
-            >
-              <span
-                className={
-                  selectedRole === "RD"
-                    ? "text-zinc-900 dark:text-zinc-100"
-                    : ""
-                }
+          <div className="flex flex-col sm:flex-row gap-2">
+            {AGENCY_ROLES.map((role) => (
+              <Button
+                key={role}
+                type="button"
+                variant="outline"
+                disabled={!user}
+                onClick={() => onSelectRole(role)}
+                className={cn(
+                  "flex-1 flex-col gap-0.5 py-2 shadow-none font-normal h-auto min-h-11 border-zinc-200 dark:border-zinc-800",
+                  selectedRole === role
+                    ? "bg-white dark:bg-zinc-900 z-10 font-semibold shadow-sm dark:border-zinc-700 ring-1 ring-blue-500 dark:ring-blue-400"
+                    : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900",
+                )}
               >
-                Regional Director
-              </span>
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={!user}
-              onClick={() => onSelectRole("SUPER_ADMIN")}
-              className={cn(
-                "flex-1 flex-col gap-0.5 rounded-none rounded-r-md -ml-px py-2 shadow-none font-normal h-auto min-h-11 border-zinc-200 dark:border-zinc-800",
-                selectedRole === "SUPER_ADMIN"
-                  ? "bg-white dark:bg-zinc-900 z-10 font-semibold shadow-sm border-l border-zinc-200 dark:border-zinc-700"
-                  : "bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900",
-              )}
-            >
-              <span
-                className={
-                  selectedRole === "SUPER_ADMIN"
-                    ? "text-zinc-900 dark:text-zinc-100"
-                    : ""
-                }
-              >
-                Super Admin
-              </span>
-            </Button>
+                <span
+                  className={
+                    selectedRole === role
+                      ? "text-zinc-900 dark:text-zinc-100"
+                      : ""
+                  }
+                >
+                  {ROLE_LABELS[role]}
+                </span>
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -232,7 +214,7 @@ export function AssignPanel({
 
               <div className="font-semibold text-zinc-500 mt-1">ROLE</div>
               <div className="text-zinc-900 dark:text-zinc-100 mt-1 font-bold">
-                {selectedRole}
+                {ROLE_LABELS[selectedRole]}
               </div>
 
               <div className="font-semibold text-zinc-500 mt-1">CLERK ID</div>
@@ -270,7 +252,7 @@ export function AssignPanel({
           <div className="flex items-start gap-2 text-[11px] text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 p-2.5 rounded border border-amber-200 dark:border-amber-500/20 leading-tight">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             <p>
-              This grants <strong>immediate dashboard access</strong> to{" "}
+              This grants <strong>immediate {ROLE_LABELS[selectedRole]} access</strong> to{" "}
               <span className="font-mono bg-amber-100 dark:bg-amber-500/20 px-1 rounded">
                 {selectedAgency.slug}
               </span>

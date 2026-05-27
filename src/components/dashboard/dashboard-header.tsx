@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/sheet";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { TenantContext } from "@/lib/tenant";
+import { ROLE_LABELS, UserRole } from "@/lib/roles";
 
 interface DashboardHeaderProps {
   tenant: NonNullable<TenantContext>;
@@ -180,11 +181,7 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
                       clerkUser.primaryEmailAddress?.emailAddress}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {dbUser.role === "RD"
-                      ? "Regional Director"
-                      : dbUser.role === "SUPER_ADMIN"
-                        ? "Super Admin"
-                        : "Member"}
+                    {dbUser.role ? ROLE_LABELS[dbUser.role as UserRole] : "Member"}
                   </span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-muted-foreground ml-1 hidden sm:block" />

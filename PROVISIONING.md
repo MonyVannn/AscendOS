@@ -22,7 +22,7 @@ When you deploy a new instance, you need to create the first agency and the firs
    ```
    *Note: This mutation sets the user as a global Super Admin and removes any agency association, as Super Admins oversee all agencies.*
 
-From this point forward, the Super Admin can use the `/admin/assign` page to provision any subsequent users that sign up. Additional Super Admins can be promoted manually using the same mutation.
+From this point forward, the Super Admin can use the `/admin/assign` page to provision any subsequent users that sign up. Additional Super Admins can be promoted manually using the same mutation, or via the **Platform Admins** UI under the System menu.
 
 ## Agency GHL field migration (legacy data)
 

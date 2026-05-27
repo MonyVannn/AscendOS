@@ -3,6 +3,8 @@ import { v } from "convex/values";
 import { fieldTrainerNameValidator, fieldTrainerEventTypeValidator } from "./fieldTrainerValidators";
 import { resourceCategoryValidator } from "./resourceHubValidators";
 
+import { userRoleValidator } from "./roles";
+
 export default defineSchema({
   agencies: defineTable({
     name: v.string(),
@@ -70,7 +72,7 @@ export default defineSchema({
     clerkId: v.string(),
     email: v.optional(v.string()),
     name: v.optional(v.string()),
-    role: v.optional(v.union(v.literal("RD"), v.literal("SUPER_ADMIN"))),
+    role: v.optional(userRoleValidator),
     bookingLink: v.optional(v.string()),
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),

@@ -30,7 +30,6 @@ export const upsertFromClerk = internalMutation({
         clerkId,
         email,
         name,
-        role: "RD",
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });

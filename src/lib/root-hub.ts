@@ -1,4 +1,5 @@
 import type { TenantContext } from "@/lib/tenant";
+import { isAgencyRole } from "@/lib/roles";
 
 /**
  * Mirrors root hub spec ordering: null tenant → pending; SUPER_ADMIN → admin;
@@ -13,7 +14,7 @@ export function resolveRootHubPath(
   if (tenant.user?.role === "SUPER_ADMIN") {
     return "/admin";
   }
-  if (!tenant.agency) {
+  if (!tenant.agency || !isAgencyRole(tenant.user?.role)) {
     return "/pending";
   }
   return "/dashboard";
