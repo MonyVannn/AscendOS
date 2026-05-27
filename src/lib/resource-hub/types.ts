@@ -1,4 +1,4 @@
-export type ResourceCategory = "audio" | "document" | "video";
+export type ResourceCategory = "audio" | "document" | "video" | "image";
 
 export type ResourceItem = {
   id: string;
@@ -8,7 +8,7 @@ export type ResourceItem = {
   tag: string;
   shareCount: number;
   durationSeconds?: number;   // audio, video
-  fileType?: string;          // document, machine — "PDF", "DOCX"
+  fileType?: string;          // document, image — "PDF", "DOCX", "PNG", "JPG"
   pageCount?: number;
-  youtubeUrl?: string;        // video — for future backend
+  youtubeUrl?: string;        // video
 };

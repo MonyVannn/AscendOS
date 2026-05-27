@@ -1,32 +1,45 @@
 "use client"
 
 import * as React from "react";
+import { useQuery, useConvexAuth } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { ResourceHubHeader } from "./resource-hub-header";
 import { ResourceHubFilters, ResourceFilterTab } from "./resource-hub-filters";
 import { ResourceHubSection } from "./resource-hub-section";
-import { MOCK_RESOURCES } from "@/lib/resource-hub/mock-data";
+import { AddResourceSheet } from "./add-resource-sheet";
+import { ResourceCategory } from "@/lib/resource-hub/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ResourceHubPageClient() {
+  const { isAuthenticated } = useConvexAuth();
+  const rawResources = useQuery(api.resourceHub.listResources, isAuthenticated ? {} : "skip");
+  
   const [activeTab, setActiveTab] = React.useState<ResourceFilterTab>("all");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [addSheetOpen, setAddSheetOpen] = React.useState(false);
+  const [addCategory, setAddCategory] = React.useState<ResourceCategory>("document");
 
   // Calculate totals
-  const totalItems = MOCK_RESOURCES.length;
-  const totalShares = MOCK_RESOURCES.reduce((sum, item) => sum + item.shareCount, 0);
+  const totalItems = rawResources?.length || 0;
+  const totalShares = rawResources?.reduce((sum, item) => sum + item.shareCount, 0) || 0;
 
   // Calculate counts for tabs
   const counts = React.useMemo(() => {
+    if (!rawResources) return { all: 0, audio: 0, document: 0, video: 0, image: 0 };
     return {
-      all: MOCK_RESOURCES.length,
-      audio: MOCK_RESOURCES.filter(r => r.category === "audio").length,
-      document: MOCK_RESOURCES.filter(r => r.category === "document").length,
-      video: MOCK_RESOURCES.filter(r => r.category === "video").length,
+      all: rawResources.length,
+      audio: rawResources.filter(r => r.category === "audio").length,
+      document: rawResources.filter(r => r.category === "document").length,
+      video: rawResources.filter(r => r.category === "video").length,
+      image: rawResources.filter(r => r.category === "image").length,
     };
-  }, []);
+  }, [rawResources]);
 
   // Filter items based on active tab and search query
   const filteredResources = React.useMemo(() => {
-    return MOCK_RESOURCES.filter(item => {
+    if (!rawResources) return [];
+    
+    return rawResources.filter(item => {
       // Filter by tab
       if (activeTab !== "all" && item.category !== activeTab) {
         return false;
@@ -44,16 +57,34 @@ export function ResourceHubPageClient() {
       
       return true;
     });
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, rawResources]);
 
   // Group filtered items by category
   const ouItems = filteredResources.filter(r => r.category === "audio");
   const documentItems = filteredResources.filter(r => r.category === "document");
   const videoItems = filteredResources.filter(r => r.category === "video");
+  const imageItems = filteredResources.filter(r => r.category === "image");
+  
+  const handleAddResource = (category: ResourceCategory = "document") => {
+    setAddCategory(category);
+    setAddSheetOpen(true);
+  };
+
+  if (rawResources === undefined) {
+    return (
+      <div className="mx-auto max-w-screen-xl py-8 px-4 sm:px-6 flex flex-col gap-8">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-8">
+          {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-screen-xl py-8 px-4 sm:px-6 flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <ResourceHubHeader totalItems={totalItems} totalShares={totalShares} />
+      <ResourceHubHeader totalItems={totalItems} totalShares={totalShares} onAddResource={() => handleAddResource()} />
       
       <ResourceHubFilters 
         activeTab={activeTab}
@@ -67,24 +98,34 @@ export function ResourceHubPageClient() {
         <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col items-center justify-center py-24 px-4 text-center">
           <h3 className="text-lg font-semibold text-foreground mb-1">No resources found.</h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            Try adjusting your search or category filter.
+            Try adjusting your search or category filter, or add a new resource.
           </p>
         </div>
       ) : (
         <div className="space-y-10">
           {(activeTab === "all" || activeTab === "audio") && (
-            <ResourceHubSection category="audio" title="Audio" items={ouItems} />
+            <ResourceHubSection category="audio" title="Audio" items={ouItems} onAddResource={handleAddResource} />
           )}
           
           {(activeTab === "all" || activeTab === "document") && (
-            <ResourceHubSection category="document" title="Documents" items={documentItems} />
+            <ResourceHubSection category="document" title="Documents" items={documentItems} onAddResource={handleAddResource} />
           )}
           
           {(activeTab === "all" || activeTab === "video") && (
-            <ResourceHubSection category="video" title="Videos" items={videoItems} />
+            <ResourceHubSection category="video" title="Videos" items={videoItems} onAddResource={handleAddResource} />
+          )}
+          
+          {(activeTab === "all" || activeTab === "image") && (
+            <ResourceHubSection category="image" title="Images" items={imageItems} onAddResource={handleAddResource} />
           )}
         </div>
       )}
+      
+      <AddResourceSheet 
+        open={addSheetOpen} 
+        onOpenChange={setAddSheetOpen} 
+        defaultCategory={addCategory} 
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { ResourceItem } from "@/lib/resource-hub/types";
 import { RESOURCE_TAGS } from "@/lib/resource-hub/mock-data";
 import { formatMediaDuration } from "@/lib/resource-hub/format-media-duration";
 import { Button } from "@/components/ui/button";
-import { Users, Upload, Eye, Headphones, FileText, PlaySquare } from "lucide-react";
+import { Users, Upload, Eye, Headphones, FileText, PlaySquare, Image as ImageIcon } from "lucide-react";
 
 interface ResourceHubCardProps {
   resource: ResourceItem;
@@ -19,6 +19,8 @@ export function ResourceHubCard({ resource }: ResourceHubCardProps) {
     Icon = Headphones;
   } else if (resource.category === "video") {
     Icon = PlaySquare;
+  } else if (resource.category === "image") {
+    Icon = ImageIcon;
   }
 
   return (
@@ -63,7 +65,7 @@ export function ResourceHubCard({ resource }: ResourceHubCardProps) {
           <span>{resource.shareCount} shared</span>
         </div>
         <div className="flex items-center gap-2">
-          {resource.category === "document" && (
+          {(resource.category === "document" || resource.category === "image") && (
             <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled title="Coming soon">
               <Eye className="h-3.5 w-3.5 mr-1.5" />
               View

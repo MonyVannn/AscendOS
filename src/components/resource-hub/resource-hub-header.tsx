@@ -5,9 +5,10 @@ import { Plus, Filter } from "lucide-react";
 interface ResourceHubHeaderProps {
   totalItems: number;
   totalShares: number;
+  onAddResource: () => void;
 }
 
-export function ResourceHubHeader({ totalItems, totalShares }: ResourceHubHeaderProps) {
+export function ResourceHubHeader({ totalItems, totalShares, onAddResource }: ResourceHubHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end justify-between">
       <div className="space-y-1">
@@ -25,7 +26,7 @@ export function ResourceHubHeader({ totalItems, totalShares }: ResourceHubHeader
           <Filter className="h-4 w-4 mr-2" />
           All categories
         </Button>
-        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" disabled title="Coming soon">
+        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground" onClick={onAddResource}>
           <Plus className="h-4 w-4 mr-2" />
           Add resource
         </Button>

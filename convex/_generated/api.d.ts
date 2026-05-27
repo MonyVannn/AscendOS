@@ -17,6 +17,8 @@ import type * as fieldTrainer from "../fieldTrainer.js";
 import type * as fieldTrainerValidators from "../fieldTrainerValidators.js";
 import type * as ghlInbound from "../ghlInbound.js";
 import type * as http from "../http.js";
+import type * as resourceHub from "../resourceHub.js";
+import type * as resourceHubValidators from "../resourceHubValidators.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as tenant from "../tenant.js";
@@ -38,6 +40,8 @@ declare const fullApi: ApiFromModules<{
   fieldTrainerValidators: typeof fieldTrainerValidators;
   ghlInbound: typeof ghlInbound;
   http: typeof http;
+  resourceHub: typeof resourceHub;
+  resourceHubValidators: typeof resourceHubValidators;
   seed: typeof seed;
   settings: typeof settings;
   tenant: typeof tenant;

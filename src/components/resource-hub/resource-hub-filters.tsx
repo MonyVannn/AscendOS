@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Search } from "lucide-react";
 
-export type ResourceFilterTab = "all" | "audio" | "document" | "video";
+export type ResourceFilterTab = "all" | "audio" | "document" | "video" | "image";
 
 interface ResourceHubFiltersProps {
   activeTab: ResourceFilterTab;
@@ -41,6 +41,9 @@ export function ResourceHubFilters({
         </ToggleGroupItem>
         <ToggleGroupItem value="video" className="h-full px-4 text-xs font-medium rounded-md data-[state=on]:bg-zinc-100 dark:data-[state=on]:bg-zinc-800 whitespace-nowrap">
           Videos <span className="ml-1.5 opacity-60 text-[10px] bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-full">{counts.video}</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="image" className="h-full px-4 text-xs font-medium rounded-md data-[state=on]:bg-zinc-100 dark:data-[state=on]:bg-zinc-800 whitespace-nowrap">
+          Images <span className="ml-1.5 opacity-60 text-[10px] bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded-full">{counts.image}</span>
         </ToggleGroupItem>
       </ToggleGroup>
 

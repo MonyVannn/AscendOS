@@ -1,16 +1,17 @@
 import * as React from "react";
 import { ResourceCategory, ResourceItem } from "@/lib/resource-hub/types";
 import { ResourceHubCard } from "./resource-hub-card";
-import { Headphones, FileText, PlaySquare, Plus } from "lucide-react";
+import { Headphones, FileText, PlaySquare, Plus, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResourceHubSectionProps {
   category: ResourceCategory;
   title: string;
   items: ResourceItem[];
+  onAddResource: (category: ResourceCategory) => void;
 }
 
-export function ResourceHubSection({ category, title, items }: ResourceHubSectionProps) {
+export function ResourceHubSection({ category, title, items, onAddResource }: ResourceHubSectionProps) {
   if (items.length === 0) return null;
 
   let Icon = FileText;
@@ -23,6 +24,9 @@ export function ResourceHubSection({ category, title, items }: ResourceHubSectio
   } else if (category === "video") {
     Icon = PlaySquare;
     addLabel = "Add video";
+  } else if (category === "image") {
+    Icon = ImageIcon;
+    addLabel = "Add image";
   }
 
   return (
@@ -35,7 +39,7 @@ export function ResourceHubSection({ category, title, items }: ResourceHubSectio
             <span className="text-xs font-normal text-muted-foreground opacity-60">{items.length}</span>
           </h3>
         </div>
-        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-xs" disabled title="Coming soon">
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground h-8 text-xs" onClick={() => onAddResource(category)}>
           <Plus className="h-3.5 w-3.5 mr-1" />
           {addLabel}
         </Button>

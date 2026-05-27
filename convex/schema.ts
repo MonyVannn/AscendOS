@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { fieldTrainerNameValidator, fieldTrainerEventTypeValidator } from "./fieldTrainerValidators";
+import { resourceCategoryValidator } from "./resourceHubValidators";
 
 export default defineSchema({
   agencies: defineTable({
@@ -162,4 +163,33 @@ export default defineSchema({
   })
     .index("by_enrollment", ["enrollmentId"])
     .index("by_agency_and_occurred", ["agencyId", "occurredAt"]),
+
+  resources: defineTable({
+    agencyId: v.id("agencies"),
+    category: resourceCategoryValidator,
+    title: v.string(),
+    description: v.string(),
+    tag: v.string(),
+    shareCount: v.number(),
+
+    // File-backed (audio + document)
+    storageId: v.optional(v.id("_storage")),
+    fileType: v.optional(v.string()),       // "PDF", "DOCX", "MP3", etc.
+    contentType: v.optional(v.string()),    // raw MIME for validation/debug
+
+    // Document-only
+    pageCount: v.optional(v.number()),
+
+    // Media duration (audio + video)
+    durationSeconds: v.optional(v.number()),
+
+    // Video-only
+    youtubeUrl: v.optional(v.string()),
+
+    createdByUserId: v.id("users"),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_agency", ["agencyId"])
+    .index("by_agency_and_category", ["agencyId", "category"]),
 });
