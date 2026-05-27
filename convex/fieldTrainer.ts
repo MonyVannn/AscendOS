@@ -171,3 +171,64 @@ export const listForTimeline = query({
     return result;
   },
 });
+
+export const getEnrollmentDetail = query({
+  args: {
+    enrollmentId: v.id("fieldTrainerEnrollments"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!caller || !caller.agencyId) return null;
+
+    const enrollment = await ctx.db.get(args.enrollmentId);
+    if (!enrollment || enrollment.agencyId !== caller.agencyId) return null;
+
+    const rd = await ctx.db.get(enrollment.assignedRdUserId);
+
+    const events = await ctx.db
+      .query("fieldTrainerEvents")
+      .withIndex("by_enrollment", (q) => q.eq("enrollmentId", args.enrollmentId))
+      .order("desc")
+      .collect();
+
+    const eventsWithUsers = [];
+    for (const event of events) {
+      const user = await ctx.db.get(event.performedByUserId);
+      eventsWithUsers.push({
+        _id: event._id,
+        eventType: event.eventType,
+        occurredAt: event.occurredAt,
+        week: event.week,
+        fieldTrainer: event.fieldTrainer,
+        performedByName: user?.name || user?.email || "Unknown",
+      });
+    }
+
+    return {
+      _id: enrollment._id,
+      firstName: enrollment.firstName,
+      phone: enrollment.phone,
+      programStatus: enrollment.programStatus,
+      startWeek: enrollment.startWeek,
+      currentWeek: enrollment.currentWeek,
+      fieldTrainer: enrollment.fieldTrainer,
+      programStartedAt: enrollment.programStartedAt,
+      weekEffectiveAt: enrollment.weekEffectiveAt,
+      ghlContactId: enrollment.ghlContactId,
+      createdAt: enrollment.createdAt,
+      updatedAt: enrollment.updatedAt,
+      assignedRd: {
+        name: rd?.name || "Unknown",
+        email: rd?.email || "Unknown",
+      },
+      events: eventsWithUsers,
+    };
+  },
+});

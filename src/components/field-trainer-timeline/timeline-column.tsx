@@ -1,13 +1,15 @@
 import { CurriculumBlockCard } from "./curriculum-block-card";
 import { EnrollmentCard, TimelineEnrollment } from "./enrollment-card";
 import { FieldTrainerWeekColumn } from "@/lib/field-trainer/curriculum";
+import type { Id } from "@/convex/_generated/dataModel";
 
 interface TimelineColumnProps {
   column: FieldTrainerWeekColumn;
   enrollments: TimelineEnrollment[];
+  onSelect?: (enrollmentId: Id<"fieldTrainerEnrollments">) => void;
 }
 
-export function TimelineColumn({ column, enrollments }: TimelineColumnProps) {
+export function TimelineColumn({ column, enrollments, onSelect }: TimelineColumnProps) {
   return (
     <div className="flex flex-col w-[320px] min-w-[320px] bg-muted/30 rounded-2xl border border-border/50 shrink-0 h-full max-h-full">
       {/* Column Header */}
@@ -37,7 +39,7 @@ export function TimelineColumn({ column, enrollments }: TimelineColumnProps) {
         <div className="space-y-3">
           {enrollments.length > 0 ? (
             enrollments.map((enrollment) => (
-              <EnrollmentCard key={enrollment._id} enrollment={enrollment} />
+              <EnrollmentCard key={enrollment._id} enrollment={enrollment} onSelect={onSelect} />
             ))
           ) : (
             <div className="text-center py-6">

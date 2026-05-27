@@ -3,7 +3,10 @@
 import * as React from "react";
 import { useQuery, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { TimelineBoard } from "./timeline-board";
+import { TimelineEnrollment } from "./enrollment-card";
+import { AgentDetailSheet } from "./agent-detail-sheet";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -14,6 +17,7 @@ export function FieldTrainerTimelinePageClient() {
   const rawEnrollments = useQuery(api.fieldTrainer.listForTimeline, isAuthenticated ? {} : "skip");
 
   const [search, setSearch] = React.useState("");
+  const [selectedEnrollmentId, setSelectedEnrollmentId] = React.useState<Id<"fieldTrainerEnrollments"> | null>(null);
 
   const isLoading = rawEnrollments === undefined;
 
@@ -75,9 +79,20 @@ export function FieldTrainerTimelinePageClient() {
             </Button>
           </div>
         ) : (
-          <TimelineBoard enrollments={filteredEnrollments as any} />
+          <TimelineBoard 
+            enrollments={filteredEnrollments as TimelineEnrollment[]} 
+            onSelect={setSelectedEnrollmentId} 
+          />
         )}
       </div>
+
+      <AgentDetailSheet 
+        open={!!selectedEnrollmentId} 
+        onOpenChange={(open) => {
+          if (!open) setSelectedEnrollmentId(null);
+        }} 
+        enrollmentId={selectedEnrollmentId} 
+      />
     </div>
   );
 }

@@ -4,12 +4,14 @@ import { FIELD_TRAINER_WEEK_COLUMNS } from "@/lib/field-trainer/curriculum";
 import { TimelineColumn } from "./timeline-column";
 import { TimelineEnrollment } from "./enrollment-card";
 import { useMemo } from "react";
+import type { Id } from "@/convex/_generated/dataModel";
 
 interface TimelineBoardProps {
   enrollments: TimelineEnrollment[];
+  onSelect?: (enrollmentId: Id<"fieldTrainerEnrollments">) => void;
 }
 
-export function TimelineBoard({ enrollments }: TimelineBoardProps) {
+export function TimelineBoard({ enrollments, onSelect }: TimelineBoardProps) {
   // Group enrollments by week
   const enrollmentsByWeek = useMemo(() => {
     const grouped: Record<number, TimelineEnrollment[]> = {};
@@ -29,6 +31,7 @@ export function TimelineBoard({ enrollments }: TimelineBoardProps) {
           <TimelineColumn 
             column={col} 
             enrollments={enrollmentsByWeek[col.week] || []} 
+            onSelect={onSelect}
           />
         </div>
       ))}

@@ -17,9 +17,10 @@ export interface TimelineEnrollment {
 
 interface EnrollmentCardProps {
   enrollment: TimelineEnrollment;
+  onSelect?: (enrollmentId: Id<"fieldTrainerEnrollments">) => void;
 }
 
-export function EnrollmentCard({ enrollment }: EnrollmentCardProps) {
+export function EnrollmentCard({ enrollment, onSelect }: EnrollmentCardProps) {
   // Extract initials
   const initials = enrollment.firstName
     .split(" ")
@@ -28,8 +29,25 @@ export function EnrollmentCard({ enrollment }: EnrollmentCardProps) {
     .substring(0, 2)
     .toUpperCase();
 
+  const isClickable = !!onSelect;
+
   return (
-    <div className="bg-card border border-border rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow cursor-default flex flex-col gap-3">
+    <div 
+      className={`bg-card border border-border rounded-xl shadow-sm p-4 flex flex-col gap-3 ${
+        isClickable 
+          ? "hover:shadow-md hover:ring-1 hover:ring-border transition-all cursor-pointer" 
+          : "hover:shadow-md transition-shadow cursor-default"
+      }`}
+      onClick={() => onSelect?.(enrollment._id)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect?.(enrollment._id);
+        }
+      }}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
           {/* Avatar placeholder */}
