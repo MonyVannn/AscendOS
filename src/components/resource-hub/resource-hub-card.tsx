@@ -7,9 +7,10 @@ import { Users, Upload, Eye, Headphones, FileText, PlaySquare, Image as ImageIco
 
 interface ResourceHubCardProps {
   resource: ResourceItem;
+  onView?: () => void;
 }
 
-export function ResourceHubCard({ resource }: ResourceHubCardProps) {
+export function ResourceHubCard({ resource, onView }: ResourceHubCardProps) {
   const tagColor = RESOURCE_TAGS.find(t => t.label === resource.tag)?.color || "bg-zinc-500";
 
   let Icon = FileText;
@@ -66,7 +67,14 @@ export function ResourceHubCard({ resource }: ResourceHubCardProps) {
         </div>
         <div className="flex items-center gap-2">
           {(resource.category === "document" || resource.category === "image") && (
-            <Button variant="outline" size="sm" className="h-8 px-3 text-xs" disabled title="Coming soon">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 px-3 text-xs" 
+              disabled={!resource.fileUrl} 
+              title={!resource.fileUrl ? "No file available" : "Preview resource"}
+              onClick={onView}
+            >
               <Eye className="h-3.5 w-3.5 mr-1.5" />
               View
             </Button>

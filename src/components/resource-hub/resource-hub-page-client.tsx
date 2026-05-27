@@ -7,8 +7,10 @@ import { ResourceHubHeader } from "./resource-hub-header";
 import { ResourceHubFilters, ResourceFilterTab } from "./resource-hub-filters";
 import { ResourceHubSection } from "./resource-hub-section";
 import { AddResourceSheet } from "./add-resource-sheet";
+import { ResourcePreviewSheet } from "./resource-preview-sheet";
 import { ResourceCategory } from "@/lib/resource-hub/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export function ResourceHubPageClient() {
   const { isAuthenticated } = useConvexAuth();
@@ -18,6 +20,7 @@ export function ResourceHubPageClient() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [addSheetOpen, setAddSheetOpen] = React.useState(false);
   const [addCategory, setAddCategory] = React.useState<ResourceCategory>("document");
+  const [previewResourceId, setPreviewResourceId] = React.useState<Id<"resources"> | null>(null);
 
   // Calculate totals
   const totalItems = rawResources?.length || 0;
@@ -104,19 +107,19 @@ export function ResourceHubPageClient() {
       ) : (
         <div className="space-y-10">
           {(activeTab === "all" || activeTab === "audio") && (
-            <ResourceHubSection category="audio" title="Audio" items={ouItems} onAddResource={handleAddResource} />
+            <ResourceHubSection category="audio" title="Audio" items={ouItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
           )}
           
           {(activeTab === "all" || activeTab === "document") && (
-            <ResourceHubSection category="document" title="Documents" items={documentItems} onAddResource={handleAddResource} />
+            <ResourceHubSection category="document" title="Documents" items={documentItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
           )}
           
           {(activeTab === "all" || activeTab === "video") && (
-            <ResourceHubSection category="video" title="Videos" items={videoItems} onAddResource={handleAddResource} />
+            <ResourceHubSection category="video" title="Videos" items={videoItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
           )}
           
           {(activeTab === "all" || activeTab === "image") && (
-            <ResourceHubSection category="image" title="Images" items={imageItems} onAddResource={handleAddResource} />
+            <ResourceHubSection category="image" title="Images" items={imageItems} onAddResource={handleAddResource} onViewResource={setPreviewResourceId} />
           )}
         </div>
       )}
@@ -125,6 +128,14 @@ export function ResourceHubPageClient() {
         open={addSheetOpen} 
         onOpenChange={setAddSheetOpen} 
         defaultCategory={addCategory} 
+      />
+
+      <ResourcePreviewSheet
+        open={previewResourceId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreviewResourceId(null);
+        }}
+        resourceId={previewResourceId}
       />
     </div>
   );

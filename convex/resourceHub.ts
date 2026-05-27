@@ -198,3 +198,35 @@ export const createResource = mutation({
     return resourceId;
   },
 });
+
+export const getResourceFileUrl = query({
+  args: {
+    resourceId: v.id("resources"),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!caller || !caller.agencyId) return null;
+
+    const resource = await ctx.db.get(args.resourceId);
+    if (!resource || resource.agencyId !== caller.agencyId) return null;
+
+    if (!resource.storageId) return null;
+
+    const url = await ctx.storage.getUrl(resource.storageId);
+    if (!url) return null;
+
+    return {
+      url,
+      contentType: resource.contentType,
+      fileType: resource.fileType,
+      title: resource.title,
+    };
+  },
+});

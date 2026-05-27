@@ -9,6 +9,8 @@ export type ResourceItem = {
   shareCount: number;
   durationSeconds?: number;   // audio, video
   fileType?: string;          // document, image — "PDF", "DOCX", "PNG", "JPG"
+  contentType?: string;
   pageCount?: number;
   youtubeUrl?: string;        // video
+  fileUrl?: string;
 };
