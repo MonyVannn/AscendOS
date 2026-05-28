@@ -7,18 +7,67 @@ import { ActivityLogFilters } from "./activity-log-filters"
 import { ActivityLogTable } from "./activity-log-table"
 import { ActivityLogTableSkeleton } from "./activity-log-table-skeleton"
 import { ActivityLogEmptyState } from "./activity-log-empty-state"
-import { ActivityLogEntry, ActivityLogStatusFilter, filterActivityLogs } from "./activity-log-types"
+import { ActivityLogPagination } from "./activity-log-pagination"
+import { ActivityLogEntry, ActivityLogStatusFilter } from "./activity-log-types"
 import { getToolDisplayName } from "@/lib/feature-tool-mapping"
-import { subDays } from "date-fns"
+import { subDays, startOfDay, endOfDay } from "date-fns"
 import { DateRange } from "react-day-picker"
+
+const PAGE_SIZE = 10
 
 export function ActivityLogPageClient() {
   const { isAuthenticated } = useConvexAuth()
-  const rawLogs = useQuery(api.activityLog.listSubmissionLogs, isAuthenticated ? { limit: 50 } : "skip")
+  
+  const [status, setStatus] = React.useState<ActivityLogStatusFilter>("all")
+  const [search, setSearch] = React.useState("")
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  })
 
-  const isLoading = rawLogs === undefined
+  const [pageIndex, setPageIndex] = React.useState(0)
+  const [cursors, setCursors] = React.useState<(string | null)[]>([null])
 
-  const logs: ActivityLogEntry[] | undefined = rawLogs?.map(log => ({
+  const handleStatusChange = (newStatus: ActivityLogStatusFilter) => {
+    setStatus(newStatus)
+    setPageIndex(0)
+    setCursors([null])
+  }
+
+  const handleSearchChange = (newSearch: string) => {
+    setSearch(newSearch)
+    setPageIndex(0)
+    setCursors([null])
+  }
+
+  const handleDateRangeChange = (newRange: DateRange | undefined) => {
+    setDateRange(newRange)
+    setPageIndex(0)
+    setCursors([null])
+  }
+
+  const dateFrom = dateRange?.from ? startOfDay(dateRange.from).getTime() : undefined
+  const dateTo = dateRange?.to ? endOfDay(dateRange.to).getTime() : undefined
+
+  const result = useQuery(
+    api.activityLog.listSubmissionLogs,
+    isAuthenticated
+      ? {
+          paginationOpts: {
+            numItems: PAGE_SIZE,
+            cursor: cursors[pageIndex] ?? null,
+          },
+          status,
+          dateFrom,
+          dateTo,
+          search: search.trim() || undefined,
+        }
+      : "skip"
+  )
+
+  const isLoading = result === undefined
+
+  const logs: ActivityLogEntry[] | undefined = result?.page.map(log => ({
     id: log._id,
     submittedAt: new Date(log.submittedAt).toISOString(),
     contactName: log.contactName || "—",
@@ -28,16 +77,24 @@ export function ActivityLogPageClient() {
     success: log.success
   }))
 
-  const [status, setStatus] = React.useState<ActivityLogStatusFilter>("all")
-  const [search, setSearch] = React.useState("")
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: subDays(new Date(), 30),
-    to: new Date(),
-  })
+  const handleNext = () => {
+    if (result && !result.isDone) {
+      setCursors((prev) => {
+        const next = [...prev]
+        next[pageIndex + 1] = result.continueCursor
+        return next
+      })
+      setPageIndex((prev) => prev + 1)
+    }
+  }
 
-  const filteredLogs = React.useMemo(() => {
-    return filterActivityLogs(logs ?? [], { status, search, dateRange })
-  }, [logs, status, search, dateRange])
+  const handlePrevious = () => {
+    if (pageIndex > 0) {
+      setPageIndex((prev) => prev - 1)
+    }
+  }
+
+  const isDefaultFilters = status === "all" && !search
 
   return (
     <div className="mx-auto max-w-screen-xl py-8 px-4 sm:px-6 flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -53,18 +110,18 @@ export function ActivityLogPageClient() {
 
       <ActivityLogFilters 
         status={status}
-        onStatusChange={setStatus}
+        onStatusChange={handleStatusChange}
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         dateRange={dateRange}
-        onDateRangeChange={setDateRange}
+        onDateRangeChange={handleDateRangeChange}
       />
 
       {isLoading || !logs ? (
         <ActivityLogTableSkeleton />
-      ) : logs.length === 0 ? (
+      ) : logs.length === 0 && pageIndex === 0 && isDefaultFilters ? (
         <ActivityLogEmptyState />
-      ) : filteredLogs.length === 0 ? (
+      ) : logs.length === 0 ? (
         <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm flex flex-col items-center justify-center py-24 px-4 text-center">
           <h3 className="text-lg font-semibold text-foreground mb-1">No results match your filters.</h3>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
@@ -72,7 +129,16 @@ export function ActivityLogPageClient() {
           </p>
         </div>
       ) : (
-        <ActivityLogTable logs={filteredLogs} />
+        <div className="flex flex-col gap-4">
+          <ActivityLogTable logs={logs} />
+          <ActivityLogPagination
+            pageIndex={pageIndex}
+            isDone={result.isDone}
+            isLoading={isLoading}
+            onPrevious={handlePrevious}
+            onNext={handleNext}
+          />
+        </div>
       )}
     </div>
   )
