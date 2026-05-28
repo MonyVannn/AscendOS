@@ -47,8 +47,15 @@ export function DashboardNav({
     return grouped;
   }, [dynamicFeatures]);
 
-  const renderLink = (name: string, href: string, iconName: string) => {
-    const isActive = pathname === href || pathname.startsWith(href + "/");
+  const renderLink = (
+    name: string,
+    href: string,
+    iconName: string,
+    exact = false,
+  ) => {
+    const isActive = exact
+      ? pathname === href
+      : pathname === href || pathname.startsWith(href + "/");
     const Icon = iconMap[iconName] || Circle;
 
     return (
@@ -82,7 +89,7 @@ export function DashboardNav({
       <div className="flex-1 min-h-0 overflow-y-auto px-3 pb-4 pt-4 space-y-1">
         {renderSectionHeader("WORKSPACE")}
         <nav className="space-y-1">
-          {renderLink("Dashboard", "/dashboard", "home")}
+          {renderLink("Dashboard", "/dashboard", "home", true)}
           {renderLink(
             "Resource Hub",
             "/dashboard/account/resource-hub",

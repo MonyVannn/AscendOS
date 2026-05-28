@@ -140,6 +140,162 @@ export const updateAgencyMemberRole = mutation({
   },
 });
 
+export const getDashboardSummary = query({
+  handler: async (ctx) => {
+    await requireSuperAdmin(ctx);
+
+    const now = Date.now();
+    const oneDayAgo = now - 86400000;
+
+    const agencies = await ctx.db.query("agencies").collect();
+    const users = await ctx.db.query("users").collect();
+    
+    // We only need the last 24h for metrics, but we also want the 15 most recent for the feed.
+    // At admin scale, collecting all webhooks might be slow in the future, but okay for v1 as noted in the plan.
+    const allWebhooks = await ctx.db.query("webhookLogs").order("desc").collect();
+
+    // 1. Users
+    const platformAdmins = users.filter(u => u.role === "SUPER_ADMIN").length;
+    const unprovisionedUsers = users.filter(u => !u.agencyId && u.role !== "SUPER_ADMIN").length;
+    const provisionedUsers = users.filter(u => u.agencyId && (u.role === "RD" || u.role === "MD" || u.role === "AGENT")).length;
+
+    // 2. Agencies
+    let activeAgencies = 0;
+    let onboardingAgencies = 0;
+
+    const agencySnapshotRaw = agencies.map(a => {
+      const rdCount = users.filter(u => u.agencyId === a._id && u.role === "RD").length;
+      const memberCount = users.filter(u => u.agencyId === a._id && (u.role === "RD" || u.role === "MD" || u.role === "AGENT")).length;
+      const webhookCount = allWebhooks.filter(w => w.agencyId === a._id).length;
+      
+      const status: "ACTIVE" | "ONBOARDING" = rdCount >= 1 ? "ACTIVE" : "ONBOARDING";
+      
+      if (status === "ACTIVE") activeAgencies++;
+      else onboardingAgencies++;
+
+      return {
+        _id: a._id,
+        name: a.name,
+        slug: a.slug,
+        status,
+        memberCount,
+        webhookCount,
+        rdCount,
+      };
+    });
+
+    // 3. Webhooks 24h
+    const webhooks24hData = allWebhooks.filter(w => w.submittedAt >= oneDayAgo);
+    const totalWebhooks24h = webhooks24hData.length;
+    const failedWebhooks24h = webhooks24hData.filter(w => !w.success).length;
+    const successRate24h = totalWebhooks24h > 0 
+      ? Math.round(((totalWebhooks24h - failedWebhooks24h) / totalWebhooks24h) * 100) 
+      : 100;
+
+    // 4. Recent Activity (top 15)
+    const recentLogs = allWebhooks.slice(0, 15);
+    const recentActivity = recentLogs.map(l => {
+      const agency = agencies.find(a => a._id === l.agencyId);
+      const user = users.find(u => u._id === l.userId);
+      return {
+        id: l._id,
+        submittedAt: l.submittedAt,
+        agencyName: agency?.name || "Unknown",
+        agencySlug: agency?.slug || "unknown",
+        userName: user?.name || "Unknown",
+        toolName: l.toolName,
+        contactName: l.contactName || "—",
+        success: l.success,
+        errorMessage: l.errorMessage,
+      };
+    });
+
+    // 5. System Health
+    let healthStatus: "healthy" | "attention" | "degraded" = "healthy";
+    let healthLabel = "Systems operating normally";
+
+    if (successRate24h < 90 || unprovisionedUsers > 5) {
+      healthStatus = "attention";
+      healthLabel = "Minor issues require review";
+    }
+    if (successRate24h < 80) {
+      healthStatus = "degraded";
+      healthLabel = "Elevated webhook failures";
+    }
+
+    // 6. Attention Items
+    const attentionItems: Array<{ id: string, title: string, description: string, href: string, severity: "warning" | "destructive" }> = [];
+    
+    if (unprovisionedUsers > 0) {
+      attentionItems.push({
+        id: "unprovisioned",
+        title: "Users Awaiting Assignment",
+        description: `${unprovisionedUsers} user(s) signed up and need to be assigned to an agency.`,
+        href: "/admin/assign",
+        severity: "warning",
+      });
+    }
+
+    if (onboardingAgencies > 0) {
+      attentionItems.push({
+        id: "onboarding",
+        title: "Agencies in Onboarding",
+        description: `${onboardingAgencies} agency/agencies are still in onboarding (no RD assigned).`,
+        href: "/admin/agencies",
+        severity: "warning",
+      });
+    }
+
+    if (successRate24h < 90) {
+      attentionItems.push({
+        id: "webhooks",
+        title: "Elevated Webhook Failures",
+        description: `Webhook success rate has dropped to ${successRate24h}% in the last 24 hours.`,
+        href: "/admin/webhooks",
+        severity: "destructive",
+      });
+    }
+
+    // 7. Agency Snapshot (Onboarding first, then by rdCount asc)
+    const agencySnapshot = agencySnapshotRaw
+      .sort((a, b) => {
+        if (a.status === "ONBOARDING" && b.status === "ACTIVE") return -1;
+        if (a.status === "ACTIVE" && b.status === "ONBOARDING") return 1;
+        return a.rdCount - b.rdCount;
+      })
+      .slice(0, 5)
+      .map(a => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { rdCount, ...rest } = a;
+        return rest;
+      });
+
+    return {
+      generatedAt: now,
+      counts: {
+        totalAgencies: agencies.length,
+        activeAgencies,
+        onboardingAgencies,
+        provisionedUsers,
+        unprovisionedUsers,
+        platformAdmins,
+      },
+      webhook24h: {
+        total: totalWebhooks24h,
+        failed: failedWebhooks24h,
+        successRate: successRate24h,
+      },
+      systemHealth: {
+        status: healthStatus,
+        label: healthLabel,
+      },
+      attentionItems,
+      recentActivity,
+      agencySnapshot,
+    };
+  },
+});
+
 export const listAgencies = query({
   handler: async (ctx) => {
     await requireSuperAdmin(ctx);
