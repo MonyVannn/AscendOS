@@ -20,6 +20,7 @@ export const TOOL_NAME_LABELS: Record<string, string> = {
   "beast-mode-drip": "Beast Mode Drip",
   "onboarding-drip": "Onboarding Drip",
   "field-trainer": "Field Trainer",
+  "share-resource": "Share Resource",
 };
 
 export function getToolNameForFeature(featureKey: string): string | undefined {

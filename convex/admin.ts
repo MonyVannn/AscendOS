@@ -1,4 +1,5 @@
 import { query, mutation, type QueryCtx, type MutationCtx } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
@@ -629,4 +630,141 @@ export const createAgency = mutation({
 
     return agencyId;
   }
+});
+
+export const listWebhookLogs = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    status: v.optional(v.union(v.literal("all"), v.literal("sent"), v.literal("failed"))),
+    dateFrom: v.optional(v.number()),
+    dateTo: v.optional(v.number()),
+    search: v.optional(v.string()),
+    agencyId: v.optional(v.id("agencies")),
+    toolName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireSuperAdmin(ctx);
+
+    const hasSearch = args.search && args.search.trim().length > 0;
+    const searchQuery = hasSearch ? args.search!.trim().toLowerCase() : "";
+
+    let isDone = false;
+    let continueCursor = args.paginationOpts.cursor;
+    const page = [];
+    const targetCount = args.paginationOpts.numItems;
+
+    while (page.length < targetCount && !isDone) {
+      const batchSize = hasSearch ? 50 : targetCount - page.length;
+
+      let q;
+      if (args.agencyId) {
+        q = ctx.db
+          .query("webhookLogs")
+          .withIndex("by_agency_submitted", (q) => {
+            const indexQuery = q.eq("agencyId", args.agencyId!);
+            if (args.dateTo !== undefined) {
+              return indexQuery.lte("submittedAt", args.dateTo);
+            }
+            return indexQuery;
+          })
+          .order("desc");
+      } else {
+        q = ctx.db
+          .query("webhookLogs")
+          .withIndex("by_submitted", (q) => {
+            if (args.dateTo !== undefined) {
+              return q.lte("submittedAt", args.dateTo);
+            }
+            return q;
+          })
+          .order("desc");
+      }
+
+      if (args.dateFrom !== undefined) {
+        q = q.filter((q) => q.gte(q.field("submittedAt"), args.dateFrom!));
+      }
+
+      if (args.status === "sent") {
+        q = q.filter((q) => q.eq(q.field("success"), true));
+      } else if (args.status === "failed") {
+        q = q.filter((q) => q.eq(q.field("success"), false));
+      }
+
+      if (args.toolName && args.toolName !== "all") {
+        q = q.filter((q) => q.eq(q.field("toolName"), args.toolName!));
+      }
+
+      const result = await q.paginate({ cursor: continueCursor, numItems: batchSize });
+
+      // batch-load agencies and users
+      const agencyIds = new Set<Id<"agencies">>();
+      const userIds = new Set<Id<"users">>();
+      for (const log of result.page) {
+        agencyIds.add(log.agencyId);
+        userIds.add(log.userId);
+      }
+
+      const agencies = new Map();
+      const users = new Map();
+
+      for (const aid of agencyIds) {
+        const ag = await ctx.db.get(aid);
+        if (ag) agencies.set(aid, ag);
+      }
+      for (const uid of userIds) {
+        const u = await ctx.db.get(uid);
+        if (u) users.set(uid, u);
+      }
+
+      for (const log of result.page) {
+        const agency = agencies.get(log.agencyId);
+        const user = users.get(log.userId);
+
+        let matches = true;
+        if (hasSearch) {
+          const matchContactName = log.contactName?.toLowerCase().includes(searchQuery) ?? false;
+          const matchEmail = log.contactEmail?.toLowerCase().includes(searchQuery) ?? false;
+          const matchTool = log.toolName?.toLowerCase().includes(searchQuery) ?? false;
+          const matchAgencyName = agency?.name.toLowerCase().includes(searchQuery) ?? false;
+          const matchAgencySlug = agency?.slug.toLowerCase().includes(searchQuery) ?? false;
+          const matchUserName = user?.name.toLowerCase().includes(searchQuery) ?? false;
+          
+          matches = matchContactName || matchEmail || matchTool || matchAgencyName || matchAgencySlug || matchUserName;
+        }
+
+        if (matches) {
+          page.push({
+            _id: log._id,
+            submittedAt: log.submittedAt,
+            contactName: log.contactName,
+            contactEmail: log.contactEmail,
+            templateName: log.templateName,
+            toolName: log.toolName,
+            success: log.success,
+            errorMessage: log.errorMessage,
+            latencyMs: log.latencyMs,
+            retried: log.retried,
+            agencyId: log.agencyId,
+            agencyName: agency?.name || "Unknown",
+            agencySlug: agency?.slug || "unknown",
+            userId: log.userId,
+            userName: user?.name || "Unknown",
+          });
+        }
+      }
+
+      continueCursor = result.continueCursor;
+      isDone = result.isDone;
+
+      if (!hasSearch) {
+        break;
+      }
+    }
+
+    return {
+      page,
+      continueCursor,
+      isDone,
+    };
+  },
 });
