@@ -19,8 +19,8 @@ interface DashboardGreetingHeaderProps {
   onPeriodChange: (period: DashboardPeriod) => void;
   metrics: {
     formsTriggered: number;
-    successRate: number;
-    avgFireTimeMs: number;
+    activeAgents: number;
+    contactsReached: number;
   };
   smartForms: Array<{ label: string; href: string; isLive: boolean }>;
 }
@@ -37,6 +37,14 @@ export function DashboardGreetingHeader({
   const dateStr = formatGreetingDate();
   const formsText = formsReadyCount === 1 ? "1 form" : `${formsReadyCount} forms`;
 
+  const hour = new Date().getHours();
+  let greeting = "Good morning";
+  if (hour >= 12 && hour < 17) {
+    greeting = "Good afternoon";
+  } else if (hour >= 17) {
+    greeting = "Good evening";
+  }
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end justify-between">
       <div className="space-y-2">
@@ -44,10 +52,10 @@ export function DashboardGreetingHeader({
           {dateStr} <span className="text-muted-foreground/30">•</span> {formsText} ready to fire
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Good morning, <span className="text-accent">{firstName}</span>.
+          {greeting}, <span className="text-accent">{firstName}</span>.
         </h1>
         <p className="text-muted-foreground max-w-2xl text-sm">
-          Your team triggered {metrics.formsTriggered} automations {periodLabel.toLowerCase()} — {metrics.successRate}% success rate.
+          Your team triggered <strong>{metrics.formsTriggered}</strong> {metrics.formsTriggered === 1 ? "form" : "forms"} {periodLabel.toLowerCase()} — <strong>{metrics.activeAgents}</strong> {metrics.activeAgents === 1 ? "agent" : "agents"} in Field Trainer and <strong>{metrics.contactsReached}</strong> {metrics.contactsReached === 1 ? "contact" : "contacts"} reached.
         </p>
       </div>
 

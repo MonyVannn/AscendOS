@@ -144,7 +144,33 @@ export const getSummary = query({
     // 6. Compute Metrics
     const currentLogs = allLogs.filter(l => l.submittedAt >= args.periodStartMs && l.submittedAt <= args.periodEndMs);
     const priorLogs = allLogs.filter(l => l.submittedAt >= args.priorStartMs && l.submittedAt <= args.priorEndMs);
-    const metrics = buildDashboardMetrics(currentLogs, priorLogs);
+
+    const fieldTrainerEnrollments = await ctx.db
+      .query("fieldTrainerEnrollments")
+      .withIndex("by_agency", (q) => q.eq("agencyId", user.agencyId!))
+      .collect();
+      
+    const activeAgentsTotal = fieldTrainerEnrollments.filter(e => e.programStatus === "active").length;
+    const newAgentsCurrent = fieldTrainerEnrollments.filter(e => e.programStartedAt >= args.periodStartMs && e.programStartedAt <= args.periodEndMs).length;
+    const newAgentsPrior = fieldTrainerEnrollments.filter(e => e.programStartedAt >= args.priorStartMs && e.programStartedAt <= args.priorEndMs).length;
+
+    const resourceShares = await ctx.db
+      .query("resourceShares")
+      .withIndex("by_agency_shared_at", (q) => q.eq("agencyId", user.agencyId!))
+      .collect();
+      
+    const currentResourcesShared = resourceShares.filter(s => s.sharedAt >= args.periodStartMs && s.sharedAt <= args.periodEndMs && (!s.revokedAt || s.revokedAt > s.sharedAt)).length;
+    const priorResourcesShared = resourceShares.filter(s => s.sharedAt >= args.priorStartMs && s.sharedAt <= args.priorEndMs && (!s.revokedAt || s.revokedAt > s.sharedAt)).length;
+
+    const metrics = buildDashboardMetrics(
+      currentLogs.map(l => ({ contactEmail: l.contactEmail })),
+      priorLogs.map(l => ({ contactEmail: l.contactEmail })),
+      activeAgentsTotal,
+      newAgentsCurrent,
+      newAgentsPrior,
+      currentResourcesShared,
+      priorResourcesShared
+    );
 
     // 7. Recent Activity (last 10 logs)
     const recentActivityLogs = allLogs.slice(0, 10);

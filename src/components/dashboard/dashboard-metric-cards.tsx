@@ -1,5 +1,5 @@
 import { ArrowDownIcon, ArrowUpIcon, MinusIcon } from "lucide-react";
-import { DashboardMetrics, formatDurationMs } from "@/lib/dashboard-period";
+import { DashboardMetrics } from "@/lib/dashboard-period";
 
 interface DashboardMetricCardsProps {
   metrics: DashboardMetrics;
@@ -15,23 +15,22 @@ export function DashboardMetricCards({ metrics }: DashboardMetricCardsProps) {
         deltaPct={metrics.formsTriggered.deltaPct}
       />
       <MetricCard
-        title="Agents touched"
-        value={metrics.agentsTouched.value.toString()}
-        delta={metrics.agentsTouched.delta}
-        deltaPct={metrics.agentsTouched.deltaPct}
+        title="Active agents"
+        value={metrics.activeAgents.value.toString()}
+        delta={metrics.activeAgents.delta}
+        deltaPct={metrics.activeAgents.deltaPct}
       />
       <MetricCard
-        title="Avg fire time"
-        value={formatDurationMs(metrics.avgFireTimeMs.value)}
-        delta={metrics.avgFireTimeMs.delta}
-        deltaPct={metrics.avgFireTimeMs.deltaPct}
-        inverseGood // Lower is better for latency
+        title="Contacts reached"
+        value={metrics.contactsReached.value.toString()}
+        delta={metrics.contactsReached.delta}
+        deltaPct={metrics.contactsReached.deltaPct}
       />
       <MetricCard
-        title="Success rate"
-        value={`${metrics.successRate.value}%`}
-        delta={metrics.successRate.delta}
-        deltaPct={metrics.successRate.deltaPct}
+        title="Resources shared"
+        value={metrics.resourcesShared.value.toString()}
+        delta={metrics.resourcesShared.delta}
+        deltaPct={metrics.resourcesShared.deltaPct}
       />
     </div>
   );

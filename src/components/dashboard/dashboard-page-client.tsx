@@ -55,8 +55,8 @@ export function DashboardPageClient({ tenant }: DashboardPageClientProps) {
         onPeriodChange={setPeriod}
         metrics={{
           formsTriggered: summary.metrics.formsTriggered.value,
-          successRate: summary.metrics.successRate.value,
-          avgFireTimeMs: summary.metrics.avgFireTimeMs.value
+          activeAgents: summary.metrics.activeAgents.value,
+          contactsReached: summary.metrics.contactsReached.value
         }}
         smartForms={smartForms}
       />

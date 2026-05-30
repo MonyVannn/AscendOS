@@ -50,11 +50,9 @@ export function getPeriodRange(
   };
 }
 
-export type WebhookLogMetrics = {
+export type LogMetrics = {
   formsTriggered: number;
-  agentsTouched: number;
-  avgFireTimeMs: number;
-  successRate: number;
+  contactsReached: number;
 };
 
 export type MetricWithDelta = {
@@ -65,35 +63,22 @@ export type MetricWithDelta = {
 
 export type DashboardMetrics = {
   formsTriggered: MetricWithDelta;
-  agentsTouched: MetricWithDelta;
-  avgFireTimeMs: MetricWithDelta;
-  successRate: MetricWithDelta;
+  activeAgents: MetricWithDelta;
+  contactsReached: MetricWithDelta;
+  resourcesShared: MetricWithDelta;
 };
 
 export type LogLike = {
-  userId: string;
-  success: boolean;
-  latencyMs?: number | null;
+  contactEmail: string;
 };
 
-export function computeMetricsFromLogs(logs: LogLike[]): WebhookLogMetrics {
+export function computeLogMetrics(logs: LogLike[]): LogMetrics {
   const total = logs.length;
-  const successCount = logs.filter((l) => l.success).length;
-  const uniqueUsers = new Set(logs.map((l) => l.userId)).size;
-  const latencies = logs
-    .filter((l) => l.latencyMs != null)
-    .map((l) => l.latencyMs as number);
-  const avgLatency =
-    latencies.length > 0
-      ? latencies.reduce((sum, ms) => sum + ms, 0) / latencies.length
-      : 0;
-  const successRate = total > 0 ? (successCount / total) * 100 : 0;
+  const uniqueContacts = new Set(logs.map((l) => l.contactEmail).filter(Boolean)).size;
 
   return {
     formsTriggered: total,
-    agentsTouched: uniqueUsers,
-    avgFireTimeMs: Math.round(avgLatency),
-    successRate: Math.round(successRate * 10) / 10,
+    contactsReached: uniqueContacts,
   };
 }
 
@@ -106,16 +91,25 @@ export function withDelta(current: number, prior: number): MetricWithDelta {
 
 export function buildDashboardMetrics(
   currentLogs: LogLike[],
-  priorLogs: LogLike[]
+  priorLogs: LogLike[],
+  activeAgentsTotal: number,
+  newAgentsCurrent: number,
+  newAgentsPrior: number,
+  currentResourcesShared: number,
+  priorResourcesShared: number
 ): DashboardMetrics {
-  const current = computeMetricsFromLogs(currentLogs);
-  const prior = computeMetricsFromLogs(priorLogs);
+  const current = computeLogMetrics(currentLogs);
+  const prior = computeLogMetrics(priorLogs);
+
+  const agentsDelta = newAgentsCurrent - newAgentsPrior;
+  const agentsDeltaPct =
+    newAgentsPrior === 0 ? (newAgentsCurrent > 0 ? 100 : 0) : Math.round((agentsDelta / newAgentsPrior) * 100);
 
   return {
     formsTriggered: withDelta(current.formsTriggered, prior.formsTriggered),
-    agentsTouched: withDelta(current.agentsTouched, prior.agentsTouched),
-    avgFireTimeMs: withDelta(current.avgFireTimeMs, prior.avgFireTimeMs),
-    successRate: withDelta(current.successRate, prior.successRate),
+    activeAgents: { value: activeAgentsTotal, delta: agentsDelta, deltaPct: agentsDeltaPct },
+    contactsReached: withDelta(current.contactsReached, prior.contactsReached),
+    resourcesShared: withDelta(currentResourcesShared, priorResourcesShared),
   };
 }
 

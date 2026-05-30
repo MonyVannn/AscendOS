@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   getPeriodRange,
-  computeMetricsFromLogs,
+  computeLogMetrics,
   buildDashboardMetrics,
   formatRelativeTime,
   formatDurationMs,
@@ -45,62 +45,72 @@ describe("dashboard-period", () => {
     });
   });
 
-  describe("computeMetricsFromLogs", () => {
+  describe("computeLogMetrics", () => {
     it("computes empty metrics for empty logs", () => {
-      const metrics = computeMetricsFromLogs([]);
+      const metrics = computeLogMetrics([]);
       expect(metrics).toEqual({
         formsTriggered: 0,
-        agentsTouched: 0,
-        avgFireTimeMs: 0,
-        successRate: 0,
+        contactsReached: 0,
       });
     });
 
-    it("computes metrics correctly", () => {
+    it("computes metrics correctly with contact dedup", () => {
       const logs = [
-        { userId: "u1", success: true, latencyMs: 200 },
-        { userId: "u1", success: true, latencyMs: 300 },
-        { userId: "u2", success: false, latencyMs: null }, // no latency
-        { userId: "u3", success: true, latencyMs: 400 },
+        { contactEmail: "a@b.com" },
+        { contactEmail: "a@b.com" },
+        { contactEmail: "c@d.com" },
+        { contactEmail: "" }, // missing/empty email
       ];
 
-      const metrics = computeMetricsFromLogs(logs);
+      const metrics = computeLogMetrics(logs);
       expect(metrics.formsTriggered).toBe(4);
-      expect(metrics.agentsTouched).toBe(3); // u1, u2, u3
-      expect(metrics.avgFireTimeMs).toBe(300); // (200+300+400)/3
-      expect(metrics.successRate).toBe(75); // 3/4
+      expect(metrics.contactsReached).toBe(2); // a@b.com and c@d.com
     });
   });
 
   describe("buildDashboardMetrics", () => {
     it("handles zero prior logs (100% growth or 0%)", () => {
       const current = [
-        { userId: "u1", success: true, latencyMs: 200 },
+        { contactEmail: "a@b.com" },
       ];
       const prior: LogLike[] = [];
-      const metrics = buildDashboardMetrics(current, prior);
+      const metrics = buildDashboardMetrics(
+        current, prior,
+        1, // activeAgentsTotal
+        1, // newAgentsCurrent
+        0, // newAgentsPrior
+        5, // currentResourcesShared
+        0  // priorResourcesShared
+      );
 
       expect(metrics.formsTriggered).toEqual({ value: 1, delta: 1, deltaPct: 100 });
-      expect(metrics.agentsTouched).toEqual({ value: 1, delta: 1, deltaPct: 100 });
-      expect(metrics.avgFireTimeMs).toEqual({ value: 200, delta: 200, deltaPct: 100 });
-      expect(metrics.successRate).toEqual({ value: 100, delta: 100, deltaPct: 100 });
+      expect(metrics.activeAgents).toEqual({ value: 1, delta: 1, deltaPct: 100 });
+      expect(metrics.contactsReached).toEqual({ value: 1, delta: 1, deltaPct: 100 });
+      expect(metrics.resourcesShared).toEqual({ value: 5, delta: 5, deltaPct: 100 });
     });
 
     it("computes deltas correctly with prior data", () => {
       const current = [
-        { userId: "u1", success: true, latencyMs: 400 },
-        { userId: "u2", success: false, latencyMs: 200 },
-      ]; // total 2, agents 2, avg latency 300, success 50
+        { contactEmail: "a@b.com" },
+        { contactEmail: "c@d.com" },
+      ]; // total 2, unique 2
       const prior = [
-        { userId: "u1", success: true, latencyMs: 200 },
-      ]; // total 1, agents 1, avg latency 200, success 100
+        { contactEmail: "a@b.com" },
+      ]; // total 1, unique 1
 
-      const metrics = buildDashboardMetrics(current, prior);
+      const metrics = buildDashboardMetrics(
+        current, prior,
+        5, // activeAgentsTotal
+        2, // newAgentsCurrent
+        4, // newAgentsPrior
+        10, // currentResourcesShared
+        5   // priorResourcesShared
+      );
 
       expect(metrics.formsTriggered).toEqual({ value: 2, delta: 1, deltaPct: 100 });
-      expect(metrics.agentsTouched).toEqual({ value: 2, delta: 1, deltaPct: 100 });
-      expect(metrics.avgFireTimeMs).toEqual({ value: 300, delta: 100, deltaPct: 50 });
-      expect(metrics.successRate).toEqual({ value: 50, delta: -50, deltaPct: -50 });
+      expect(metrics.activeAgents).toEqual({ value: 5, delta: -2, deltaPct: -50 });
+      expect(metrics.contactsReached).toEqual({ value: 2, delta: 1, deltaPct: 100 });
+      expect(metrics.resourcesShared).toEqual({ value: 10, delta: 5, deltaPct: 100 });
     });
   });
 
