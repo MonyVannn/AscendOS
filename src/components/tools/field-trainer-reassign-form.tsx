@@ -2,6 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useQuery, useConvexAuth } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import {
   User,
   Phone,
@@ -14,16 +17,11 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { FIELD_TRAINER_OPTIONS } from "@/lib/ghl/field-trainer-options";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { FieldTrainerAgentSelect } from "./field-trainer-agent-select";
+import { FieldTrainerSelector } from "./field-trainer-selector";
 
 interface FieldTrainerReassignFormProps {
   user: {
@@ -37,8 +35,20 @@ interface FieldTrainerReassignFormProps {
 }
 
 export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignFormProps) {
-  const [firstName, setFirstName] = React.useState("");
-  const [phone, setPhone] = React.useState("");
+  const { isAuthenticated } = useConvexAuth();
+  const rawEnrollments = useQuery(
+    api.fieldTrainer.listForTimeline,
+    isAuthenticated ? {} : "skip"
+  );
+  
+  const activeEnrollments = React.useMemo(() => {
+    if (!rawEnrollments) return [];
+    return rawEnrollments.filter((e) => e.programStatus === "active");
+  }, [rawEnrollments]);
+
+  const [selectedAgentId, setSelectedAgentId] = React.useState<Id<"fieldTrainerEnrollments"> | "">("");
+  const selectedAgent = activeEnrollments.find((e) => e._id === selectedAgentId);
+
   const [trainer, setTrainer] = React.useState<string>("");
   const [copied, setCopied] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -49,7 +59,7 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
 
   // Relaxed validation: we don't require the profile to be complete to reassign a trainer.
   const isFormValid = Boolean(
-    firstName.trim() && phone.trim() && trainer
+    selectedAgent && trainer
   );
 
   const copyBookingLink = () => {
@@ -61,7 +71,7 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
   };
 
   const handleSend = React.useCallback(async () => {
-    if (!isFormValid || isSubmitting) return;
+    if (!isFormValid || isSubmitting || !selectedAgent) return;
     
     setIsSubmitting(true);
     try {
@@ -69,8 +79,8 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          phone,
+          first_name: selectedAgent.firstName,
+          phone: selectedAgent.phone,
           trainer,
         }),
       });
@@ -79,8 +89,7 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
 
       if (res.ok) {
         toast.success("Trainer reassigned successfully");
-        setFirstName("");
-        setPhone("");
+        setSelectedAgentId("");
         setTrainer("");
       } else {
         toast.error(data.error || "Failed to reassign trainer");
@@ -90,7 +99,7 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, firstName, phone, trainer]);
+  }, [isFormValid, isSubmitting, selectedAgent, trainer]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -118,28 +127,14 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 pl-10">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/90">Agent First Name</label>
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="text-xs font-semibold text-foreground/90">Select Agent</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="e.g. Alex"
-                className="pl-9 h-10"
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/90">Agent Phone #</label>
-            <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. (555) 123-4567"
-                className="pl-9 h-10"
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <FieldTrainerAgentSelect
+                value={selectedAgentId}
+                onValueChange={setSelectedAgentId}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -147,18 +142,10 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
             <label className="text-xs font-semibold text-foreground/90">Select New Trainer</label>
             <div className="relative">
               <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <Select value={trainer} onValueChange={setTrainer}>
-                <SelectTrigger className="w-full pl-9 h-10">
-                  <SelectValue placeholder="Select Trainer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {FIELD_TRAINER_OPTIONS.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FieldTrainerSelector
+                value={trainer}
+                onValueChange={setTrainer}
+              />
             </div>
           </div>
         </div>

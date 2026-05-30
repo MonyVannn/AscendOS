@@ -14,16 +14,10 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { FIELD_TRAINER_OPTIONS } from "@/lib/ghl/field-trainer-options";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { FieldTrainerSelector } from "./field-trainer-selector";
 
 interface FieldTrainerDripFormProps {
   user: {
@@ -147,18 +141,10 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
             <label className="text-xs font-semibold text-foreground/90">Select Trainer</label>
             <div className="relative">
               <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <Select value={trainer} onValueChange={setTrainer}>
-                <SelectTrigger className="w-full pl-9 h-10">
-                  <SelectValue placeholder="Select Trainer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {FIELD_TRAINER_OPTIONS.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FieldTrainerSelector
+                value={trainer}
+                onValueChange={setTrainer}
+              />
             </div>
           </div>
         </div>

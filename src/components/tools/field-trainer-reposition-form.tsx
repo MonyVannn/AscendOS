@@ -2,6 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useQuery, useConvexAuth } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import {
   User,
   Phone,
@@ -17,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { FieldTrainerAgentSelect } from "./field-trainer-agent-select";
 
 interface FieldTrainerRepositionFormProps {
   user: {
@@ -30,8 +34,20 @@ interface FieldTrainerRepositionFormProps {
 }
 
 export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerRepositionFormProps) {
-  const [firstName, setFirstName] = React.useState("");
-  const [phone, setPhone] = React.useState("");
+  const { isAuthenticated } = useConvexAuth();
+  const rawEnrollments = useQuery(
+    api.fieldTrainer.listForTimeline,
+    isAuthenticated ? {} : "skip"
+  );
+
+  const activeEnrollments = React.useMemo(() => {
+    if (!rawEnrollments) return [];
+    return rawEnrollments.filter((e) => e.programStatus === "active");
+  }, [rawEnrollments]);
+
+  const [selectedAgentId, setSelectedAgentId] = React.useState<Id<"fieldTrainerEnrollments"> | "">("");
+  const selectedAgent = activeEnrollments.find((e) => e._id === selectedAgentId);
+
   const [week, setWeek] = React.useState("");
   const [copied, setCopied] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -46,7 +62,7 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
 
   // Relaxed validation: we don't require the profile to be complete to reposition an agent.
   const isFormValid = Boolean(
-    firstName.trim() && phone.trim() && isValidWeek
+    selectedAgent && isValidWeek
   );
 
   const copyBookingLink = () => {
@@ -58,7 +74,7 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
   };
 
   const handleSend = React.useCallback(async () => {
-    if (!isFormValid || isSubmitting) return;
+    if (!isFormValid || isSubmitting || !selectedAgent) return;
     
     setIsSubmitting(true);
     try {
@@ -66,8 +82,8 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          phone,
+          first_name: selectedAgent.firstName,
+          phone: selectedAgent.phone,
           current_week: weekNum,
         }),
       });
@@ -76,8 +92,7 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
 
       if (res.ok) {
         toast.success("Agent repositioned successfully");
-        setFirstName("");
-        setPhone("");
+        setSelectedAgentId("");
         setWeek("");
       } else {
         toast.error(data.error || "Failed to reposition agent");
@@ -87,7 +102,7 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, firstName, phone, weekNum]);
+  }, [isFormValid, isSubmitting, selectedAgent, weekNum]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -115,28 +130,21 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 pl-10">
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/90">Agent First Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="e.g. Alex"
-                className="pl-9 h-10"
-              />
+          <div className="space-y-1.5 md:col-span-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-foreground/90">Select Agent</label>
+              {selectedAgent && (
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  Currently on Week {selectedAgent.currentWeek}
+                </span>
+              )}
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/90">Agent Phone #</label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. (555) 123-4567"
-                className="pl-9 h-10"
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <FieldTrainerAgentSelect
+                value={selectedAgentId}
+                onValueChange={setSelectedAgentId}
+                disabled={isSubmitting}
               />
             </div>
           </div>
