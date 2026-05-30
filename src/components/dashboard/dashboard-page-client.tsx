@@ -9,6 +9,7 @@ import { DashboardGreetingHeader } from "./dashboard-greeting-header";
 import { DashboardSetupBanner } from "./dashboard-setup-banner";
 import { DashboardMetricCards } from "./dashboard-metric-cards";
 import { DashboardQuickActions } from "./dashboard-quick-actions";
+import { DashboardFieldTrainerTimelinePreview } from "./dashboard-field-trainer-timeline-preview";
 import { DashboardRecentActivity } from "./dashboard-recent-activity";
 import { DashboardScheduledDrips } from "./dashboard-scheduled-drips";
 import { DashboardSkeleton } from "./dashboard-skeleton";
@@ -69,6 +70,8 @@ export function DashboardPageClient({ tenant }: DashboardPageClientProps) {
       <DashboardMetricCards metrics={summary.metrics} />
 
       <DashboardQuickActions actions={summary.quickActions} nowMs={nowMs} />
+
+      <DashboardFieldTrainerTimelinePreview />
 
       <div className="grid gap-6 lg:grid-cols-3 h-[450px]">
         <div className="lg:col-span-2 h-full">

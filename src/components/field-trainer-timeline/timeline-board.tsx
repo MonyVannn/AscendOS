@@ -5,6 +5,7 @@ import { TimelineColumn } from "./timeline-column";
 import { TimelineEnrollment } from "./enrollment-card";
 import { useMemo } from "react";
 import type { Id } from "@/convex/_generated/dataModel";
+import { groupEnrollmentsByWeek } from "@/lib/field-trainer/group-enrollments-by-week";
 
 interface TimelineBoardProps {
   enrollments: TimelineEnrollment[];
@@ -14,14 +15,7 @@ interface TimelineBoardProps {
 export function TimelineBoard({ enrollments, onSelect }: TimelineBoardProps) {
   // Group enrollments by week
   const enrollmentsByWeek = useMemo(() => {
-    const grouped: Record<number, TimelineEnrollment[]> = {};
-    for (const e of enrollments) {
-      if (!grouped[e.currentWeek]) {
-        grouped[e.currentWeek] = [];
-      }
-      grouped[e.currentWeek].push(e);
-    }
-    return grouped;
+    return groupEnrollmentsByWeek(enrollments);
   }, [enrollments]);
 
   return (

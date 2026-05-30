@@ -40,6 +40,26 @@ export function DashboardSkeleton() {
         </div>
       </div>
 
+      {/* Field Trainer Preview */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+          <div className="flex gap-8">
+            <Skeleton className="h-12 w-24" />
+            <Skeleton className="h-12 w-24" />
+            <Skeleton className="h-12 w-32" />
+          </div>
+          <div className="flex gap-2 h-24">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="flex-1 h-full rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Bottom Row */}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 rounded-xl border border-border bg-card h-96" />
