@@ -109,6 +109,8 @@ export const applyEnrollmentFromSubmission = mutation({
         }
         updates.weekEffectiveAt = now;
         updates.assignedRdUserId = args.userId;
+      } else if (args.eventType === "agent_removed") {
+        updates.programStatus = "withdrawn";
       }
 
       await ctx.db.patch(enrollment!._id, updates);

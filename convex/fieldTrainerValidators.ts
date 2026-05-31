@@ -12,7 +12,8 @@ export const fieldTrainerNameValidator = v.union(
 export const fieldTrainerEventTypeValidator = v.union(
   v.literal("started_production_drip"),
   v.literal("reassigned_trainer"),
-  v.literal("repositioned_week")
+  v.literal("repositioned_week"),
+  v.literal("agent_removed")
 );
 
 export const FIELD_TRAINER_MAX_WEEK = 5;

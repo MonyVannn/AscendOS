@@ -17,6 +17,12 @@ export const GHL_INBOUND_WEBHOOK_KEYS = [
     description:
       "Powers the Reposition Agent tool (form 3) in the RD dashboard.",
   },
+  {
+    key: "remove-agent",
+    label: "Remove Agent",
+    description:
+      "Powers the Remove Agent tool in the RD dashboard. Permanently removes agent from GHL automations and contacts.",
+  },
 ] as const;
 
 export type GhlInboundWebhookKey =

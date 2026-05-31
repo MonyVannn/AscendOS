@@ -66,4 +66,15 @@ export const INITIAL_FEATURES = [
     isActive: true,
     sortOrder: 60,
   },
+  {
+    key: "remove-agent",
+    label: "Remove Agent",
+    description: "Permanently remove an agent from GHL automations and contacts",
+    pillar: "tools",
+    type: "smart-form",
+    href: "/dashboard/tools/remove-agent",
+    icon: "userX",
+    isActive: true,
+    sortOrder: 70,
+  },
 ] as const;

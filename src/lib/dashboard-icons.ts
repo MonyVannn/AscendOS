@@ -12,6 +12,7 @@ import {
   Settings,
   Users,
   Zap,
+  UserX,
 } from "lucide-react";
 
 export const iconMap: Record<string, LucideIcon> = {
@@ -27,4 +28,5 @@ export const iconMap: Record<string, LucideIcon> = {
   settings: Settings,
   mail: Mail,
   columns: Columns3,
+  userX: UserX,
 };

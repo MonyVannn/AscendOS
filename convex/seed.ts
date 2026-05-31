@@ -302,18 +302,42 @@ export const backfillAgencyFeaturesFromLegacy = internalMutation({
   }
 });
 
-export const fixSuperAdminAgencyId = internalMutation({
+export const enableRemoveAgentFeature = internalMutation({
   handler: async (ctx) => {
-    const users = await ctx.db.query("users").collect();
-    let patched = 0;
+    const feature = await ctx.db
+      .query("features")
+      .withIndex("by_key", (q) => q.eq("key", "remove-agent"))
+      .unique();
 
-    for (const user of users) {
-      if (user.role === "SUPER_ADMIN" && user.agencyId !== undefined) {
-        await ctx.db.patch(user._id, { agencyId: undefined });
-        patched++;
+    if (!feature) {
+      return "Feature not found";
+    }
+
+    const agencies = await ctx.db.query("agencies").collect();
+    let enabled = 0;
+
+    for (const agency of agencies) {
+      const existingJoin = await ctx.db
+        .query("agencyFeatures")
+        .withIndex("by_agency_and_feature", (q) => 
+           q.eq("agencyId", agency._id).eq("featureId", feature._id)
+        )
+        .unique();
+      
+      if (!existingJoin) {
+        await ctx.db.insert("agencyFeatures", {
+          agencyId: agency._id,
+          featureId: feature._id,
+          isEnabled: true,
+          sortOrder: feature.sortOrder,
+        });
+        enabled++;
+      } else if (!existingJoin.isEnabled) {
+        await ctx.db.patch(existingJoin._id, { isEnabled: true });
+        enabled++;
       }
     }
 
-    return { patched };
+    return `Enabled remove-agent for ${enabled} agencies`;
   }
 });

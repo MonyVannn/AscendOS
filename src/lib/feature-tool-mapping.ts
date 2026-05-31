@@ -4,6 +4,7 @@ export const FEATURE_TO_TOOL_NAME: Record<string, string> = {
   "beast-mode-drip": "beast-mode-drip",
   "onboarding-drip": "onboarding-drip",
   "field-trainer": "field-trainer",
+  "remove-agent": "remove-agent",
 };
 
 /** Maps feature registry keys to GHL inbound webhook registry keys. */
@@ -12,6 +13,7 @@ export const FEATURE_TO_WEBHOOK_KEY: Record<string, string> = {
   "beast-mode-drip": "beast-mode-drip",
   "onboarding-drip": "onboarding-drip",
   "field-trainer": "field-trainer-drip",
+  "remove-agent": "remove-agent",
 };
 
 /** Human-readable labels for webhook log toolName values. */
@@ -21,6 +23,7 @@ export const TOOL_NAME_LABELS: Record<string, string> = {
   "onboarding-drip": "Onboarding Drip",
   "field-trainer": "Field Trainer",
   "share-resource": "Share Resource",
+  "remove-agent": "Remove Agent",
 };
 
 export function getToolNameForFeature(featureKey: string): string | undefined {
@@ -39,6 +42,7 @@ export function getToolDisplayName(toolName: string): string {
 export const IMPLEMENTED_FEATURE_KEYS = new Set([
   "send-email-template",
   "field-trainer",
+  "remove-agent",
 ]);
 
 export function isFeatureImplemented(featureKey: string): boolean {

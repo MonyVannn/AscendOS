@@ -19,12 +19,14 @@ export interface FieldTrainerAgentSelectProps {
   value: Id<"fieldTrainerEnrollments"> | "";
   onValueChange: (id: Id<"fieldTrainerEnrollments">) => void;
   disabled?: boolean;
+  enrollmentFilter?: "active" | "non-withdrawn";
 }
 
 export function FieldTrainerAgentSelect({
   value,
   onValueChange,
   disabled,
+  enrollmentFilter = "active",
 }: FieldTrainerAgentSelectProps) {
   const { isAuthenticated } = useConvexAuth();
   const rawEnrollments = useQuery(
@@ -34,8 +36,11 @@ export function FieldTrainerAgentSelect({
 
   const activeEnrollments = React.useMemo(() => {
     if (!rawEnrollments) return [];
+    if (enrollmentFilter === "non-withdrawn") {
+      return rawEnrollments; // listForTimeline already excludes withdrawn
+    }
     return rawEnrollments.filter((e) => e.programStatus === "active");
-  }, [rawEnrollments]);
+  }, [rawEnrollments, enrollmentFilter]);
 
   const selectedAgent = activeEnrollments.find((e) => e._id === value);
   const selectedAgentPhone = selectedAgent ? selectedAgent.phone.replace(/\D/g, "") : "";
@@ -60,13 +65,19 @@ export function FieldTrainerAgentSelect({
       <div className="space-y-2">
         <Select disabled>
           <SelectTrigger className="w-full pl-9 h-10 opacity-50 bg-input/30">
-            <SelectValue placeholder="No active agents found" />
+            <SelectValue placeholder={enrollmentFilter === "non-withdrawn" ? "No removable agents found" : "No active agents found"} />
           </SelectTrigger>
         </Select>
         <p className="text-[11px] text-muted-foreground px-1">
-          You don't have any active agents yet. Head to the{" "}
-          <span className="font-medium text-foreground/80">Start Production Drip</span> tab
-          to enroll someone first.
+          {enrollmentFilter === "non-withdrawn" ? (
+            "You don't have any agents available to remove."
+          ) : (
+            <>
+              You don't have any active agents yet. Head to the{" "}
+              <span className="font-medium text-foreground/80">Start Production Drip</span> tab
+              to enroll someone first.
+            </>
+          )}
         </p>
       </div>
     );
@@ -74,8 +85,8 @@ export function FieldTrainerAgentSelect({
 
   return (
     <Select value={value} onValueChange={onValueChange as any} disabled={disabled}>
-      <SelectTrigger className="w-full pl-9 h-12 text-left bg-input/30">
-        <SelectValue placeholder="Select an active agent">
+      <SelectTrigger className="w-full pl-9 h-10 text-left bg-input/30">
+        <SelectValue placeholder={enrollmentFilter === "non-withdrawn" ? "Select an agent" : "Select an active agent"}>
           {selectedAgent ? (
             <div className="flex items-center gap-2 truncate">
               <span className="font-medium text-foreground">{selectedAgent.firstName}</span>
@@ -84,7 +95,7 @@ export function FieldTrainerAgentSelect({
               </span>
             </div>
           ) : (
-            "Select an active agent"
+            enrollmentFilter === "non-withdrawn" ? "Select an agent" : "Select an active agent"
           )}
         </SelectValue>
       </SelectTrigger>
@@ -126,7 +137,7 @@ export function FieldTrainerAgentSelect({
                       {agent.fieldTrainer || "No Trainer"}
                     </span>
                     <span className="text-xs font-medium text-muted-foreground leading-tight mt-0.5">
-                      Week {agent.currentWeek}
+                      {agent.programStatus === "completed" ? "Completed · " : ""}Week {agent.currentWeek}
                     </span>
                   </div>
                 </div>
