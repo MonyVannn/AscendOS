@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { isIntegrationEnabled } from "./lib/integrationEntitlements";
 
 export const readInboundWebhookUrl = query({
   args: { key: v.string() },
@@ -26,6 +27,11 @@ export const readInboundWebhookUrl = query({
     // Security tradeoff: any authenticated Convex client with a valid JWT could call this query directly
     // and learn the webhook URL for their agency. Stronger isolation would be a Convex httpAction
     // gated by a server-only bearer secret.
+
+    const isEnabled = await isIntegrationEnabled(ctx.db, user.agencyId, args.key);
+    if (!isEnabled) {
+      return null;
+    }
 
     // 1. Check for specific keyed webhook
     const webhook = await ctx.db

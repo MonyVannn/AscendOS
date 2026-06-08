@@ -1,4 +1,5 @@
 import { query } from "./_generated/server";
+import { getEnabledIntegrationKeys } from "./lib/integrationEntitlements";
 
 export const getTenantContext = query({
   args: {},
@@ -65,12 +66,15 @@ export const getTenantContext = query({
     const { ghlAccessToken, ghlApiKey, ghlWebhookUrl, ...sanitizedAgency } =
       agency;
 
+    const enabledIntegrations = await getEnabledIntegrationKeys(ctx.db, agency._id);
+
     return {
       user,
       agency: sanitizedAgency,
       theme: theme || null,
       ghlConnected: Boolean(effectiveToken),
       enabledFeatures,
+      enabledIntegrations,
     };
   },
 });

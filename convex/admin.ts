@@ -4,6 +4,7 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
 import { agencyRoleValidator } from "./roles";
+import { getEnabledIntegrationKeys, setIntegrationEnabled, KNOWN_INTEGRATION_KEYS } from "./lib/integrationEntitlements";
 
 export const assignUserToAgency = mutation({
   args: {
@@ -377,6 +378,87 @@ async function requireSuperAdmin(ctx: AdminCtx) {
   }
 }
 
+export const listAgencyFeatures = query({
+  args: { agencyId: v.id("agencies") },
+  handler: async (ctx, { agencyId }) => {
+    await requireSuperAdmin(ctx);
+
+    const agency = await ctx.db.get(agencyId);
+    if (!agency) {
+      throw new Error("Agency not found");
+    }
+
+    const allFeatures = await ctx.db.query("features").collect();
+    const activeFeatures = allFeatures.filter((f) => f.isActive);
+    
+    const agencyFeatures = await ctx.db
+      .query("agencyFeatures")
+      .withIndex("by_agency", (q) => q.eq("agencyId", agencyId))
+      .collect();
+
+    const result = activeFeatures.map((feat) => {
+      const af = agencyFeatures.find((a) => a.featureId === feat._id);
+      return {
+        featureId: feat._id,
+        key: feat.key,
+        label: feat.label,
+        pillar: feat.pillar,
+        customLabel: af?.customLabel,
+        isEnabled: af?.isEnabled ?? false,
+        sortOrder: af?.sortOrder ?? feat.sortOrder,
+      };
+    });
+
+    return {
+      agency: {
+        _id: agency._id,
+        name: agency.name,
+        slug: agency.slug,
+      },
+      features: result,
+    };
+  },
+});
+
+export const toggleAgencyFeature = mutation({
+  args: {
+    agencyId: v.id("agencies"),
+    featureKey: v.string(),
+    isEnabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireSuperAdmin(ctx);
+
+    const feature = await ctx.db
+      .query("features")
+      .withIndex("by_key", (q) => q.eq("key", args.featureKey))
+      .unique();
+
+    if (!feature || !feature.isActive) {
+      throw new Error(`Unknown or inactive feature key: ${args.featureKey}`);
+    }
+
+    const existingJoin = await ctx.db
+      .query("agencyFeatures")
+      .withIndex("by_agency_and_feature", (q) => 
+        q.eq("agencyId", args.agencyId).eq("featureId", feature._id)
+      )
+      .unique();
+
+    if (existingJoin) {
+      await ctx.db.patch(existingJoin._id, { isEnabled: args.isEnabled });
+    } else if (args.isEnabled) {
+      await ctx.db.insert("agencyFeatures", {
+        agencyId: args.agencyId,
+        featureId: feature._id,
+        isEnabled: true,
+        sortOrder: feature.sortOrder,
+      });
+    }
+    return { success: true };
+  },
+});
+
 export const listAgencyInboundWebhooks = query({
   args: { agencyId: v.id("agencies") },
   handler: async (ctx, { agencyId }) => {
@@ -420,6 +502,8 @@ export const listAgencyInboundWebhooks = query({
       });
     }
 
+    const enabledIntegrationKeys = await getEnabledIntegrationKeys(ctx.db, agencyId);
+
     return {
       agency: {
         _id: agency._id,
@@ -427,7 +511,39 @@ export const listAgencyInboundWebhooks = query({
         slug: agency.slug,
       },
       webhooks,
+      enabledIntegrationKeys,
     };
+  },
+});
+
+export const toggleAgencyIntegration = mutation({
+  args: {
+    agencyId: v.id("agencies"),
+    key: v.string(),
+    isEnabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireSuperAdmin(ctx);
+    await setIntegrationEnabled(ctx.db, args.agencyId, args.key, args.isEnabled);
+
+    if (!args.isEnabled) {
+      // optionally delete the webhook URL row for that key
+      const existingUrl = await ctx.db
+        .query("agencyGhlInboundWebhooks")
+        .withIndex("by_agency_and_key", (q) => q.eq("agencyId", args.agencyId).eq("key", args.key))
+        .first();
+
+      if (existingUrl) {
+        await ctx.db.delete(existingUrl._id);
+      }
+      
+      if (args.key === SEND_EMAIL_TEMPLATE_KEY) {
+        const agency = await ctx.db.get(args.agencyId);
+        if (agency?.ghlWebhookUrl !== undefined) {
+          await ctx.db.patch(args.agencyId, { ghlWebhookUrl: undefined });
+        }
+      }
+    }
   },
 });
 
@@ -509,6 +625,7 @@ export const createAgency = mutation({
     ghlLocationId: v.string(),
     ghlAccessToken: v.string(),
     featureKeys: v.array(v.string()),
+    integrationKeys: v.array(v.string()),
     theme: v.optional(v.object({
       primaryColor: v.string(),
       accentColor: v.string(),
@@ -585,6 +702,17 @@ export const createAgency = mutation({
         isEnabled: true,
         sortOrder: feat.sortOrder,
       });
+    }
+
+    const validIntegrations = [];
+    for (const key of args.integrationKeys) {
+      if (KNOWN_INTEGRATION_KEYS.includes(key)) {
+        validIntegrations.push(key);
+      }
+    }
+
+    for (const key of validIntegrations) {
+      await setIntegrationEnabled(ctx.db, agencyId, key, true);
     }
 
     if (args.theme) {

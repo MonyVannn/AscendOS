@@ -112,7 +112,7 @@ export function AgencyCard({ agency }: { agency: Agency }) {
         </div>
         <div className="mt-4 flex gap-4">
           <Link href={`/admin/agencies/${agency._id}`} className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
-            Manage webhooks →
+            Manage agency →
           </Link>
           <Link href={`/admin/agencies/${agency._id}/team`} className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
             Manage team →

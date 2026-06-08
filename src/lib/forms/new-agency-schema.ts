@@ -7,6 +7,8 @@ export const availableFeatures = [
   "onboarding-drip",
   "resource-hub",
   "agent-gradebook",
+  "send-email-template",
+  "remove-agent",
 ] as const;
 
 const emptyOrUrl = (message: string) =>
@@ -67,6 +69,7 @@ export const newAgencySchema = z.object({
     .trim()
     .refine((v) => v.length > 0, { message: "Required" }),
   featureKeys: z.array(z.enum(availableFeatures)),
+  integrationKeys: z.array(z.string()),
   theme: agencyThemeSchema.optional(),
 });
 

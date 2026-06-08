@@ -1,6 +1,7 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { INITIAL_FEATURES } from "./featureRegistry";
+import { KNOWN_INTEGRATION_KEYS, setIntegrationEnabled } from "./lib/integrationEntitlements";
 
 /**
  * One-time: backfills optional expanded fields in `agencyThemes` based on legacy tokens.
@@ -302,6 +303,55 @@ export const backfillAgencyFeaturesFromLegacy = internalMutation({
   }
 });
 
+export const fixRiseFeatures = internalMutation({
+  handler: async (ctx) => {
+    const agencies = await ctx.db.query("agencies").collect();
+    const rise = agencies.find(a => a.name.toLowerCase().includes("rise"));
+    if (!rise) {
+      return "RISE agency not found";
+    }
+
+    const featuresToEnable = [
+      "send-email-template",
+      "remove-agent",
+      "beast-mode-drip",
+      "resource-hub",
+      "field-trainer"
+    ];
+
+    const allFeatures = await ctx.db.query("features").collect();
+    let enabledCount = 0;
+
+    for (const key of featuresToEnable) {
+      const feature = allFeatures.find(f => f.key === key);
+      if (!feature) continue;
+
+      const existingJoin = await ctx.db
+        .query("agencyFeatures")
+        .withIndex("by_agency_and_feature", (q) => 
+          q.eq("agencyId", rise._id).eq("featureId", feature._id)
+        )
+        .unique();
+
+      if (existingJoin) {
+        if (!existingJoin.isEnabled) {
+          await ctx.db.patch(existingJoin._id, { isEnabled: true });
+          enabledCount++;
+        }
+      } else {
+        await ctx.db.insert("agencyFeatures", {
+          agencyId: rise._id,
+          featureId: feature._id,
+          isEnabled: true,
+          sortOrder: feature.sortOrder,
+        });
+        enabledCount++;
+      }
+    }
+    return `Enabled ${enabledCount} features for RISE (${rise._id})`;
+  }
+});
+
 export const enableRemoveAgentFeature = internalMutation({
   handler: async (ctx) => {
     const feature = await ctx.db
@@ -339,5 +389,30 @@ export const enableRemoveAgentFeature = internalMutation({
     }
 
     return `Enabled remove-agent for ${enabled} agencies`;
+  }
+});
+
+export const backfillIntegrationEntitlements = internalMutation({
+  handler: async (ctx) => {
+    const agencies = await ctx.db.query("agencies").collect();
+    let enabled = 0;
+
+    for (const agency of agencies) {
+      for (const key of KNOWN_INTEGRATION_KEYS) {
+        const existing = await ctx.db
+          .query("agencyIntegrationEntitlements")
+          .withIndex("by_agency_and_key", (q) =>
+            q.eq("agencyId", agency._id).eq("key", key)
+          )
+          .first();
+
+        if (!existing) {
+          await setIntegrationEnabled(ctx.db, agency._id, key, true);
+          enabled++;
+        }
+      }
+    }
+
+    return `Enabled ${enabled} new integration entitlements across ${agencies.length} agencies`;
   }
 });

@@ -2,6 +2,7 @@ import { query } from "./_generated/server";
 import { v } from "convex/values";
 import { FEATURE_TO_TOOL_NAME, FEATURE_TO_WEBHOOK_KEY, IMPLEMENTED_FEATURE_KEYS } from "../src/lib/feature-tool-mapping";
 import { buildDashboardMetrics } from "../src/lib/dashboard-period";
+import { getEnabledIntegrationKeys } from "./lib/integrationEntitlements";
 
 export const getSummary = query({
   args: {
@@ -61,6 +62,7 @@ export const getSummary = query({
     }
 
     // 2. Fetch webhooks to determine "isLive"
+    const enabledIntegrationKeys = await getEnabledIntegrationKeys(ctx.db, user.agencyId!);
     const webhooks = await ctx.db
       .query("agencyGhlInboundWebhooks")
       .withIndex("by_agency", (q) => q.eq("agencyId", user.agencyId!))
@@ -98,7 +100,7 @@ export const getSummary = query({
       if (feat.key === "resource-hub") continue; // Exclude, already in nav
 
       const webhookKey = FEATURE_TO_WEBHOOK_KEY[feat.key];
-      const isLive = webhookKey ? Boolean(webhookUrlsByKey.get(webhookKey)?.trim()) : true; // "page" features might not need webhooks, assume live. For MVP, we use webhooks for smart-forms.
+      const isLive = webhookKey ? (enabledIntegrationKeys.includes(webhookKey) && Boolean(webhookUrlsByKey.get(webhookKey)?.trim())) : true; // "page" features might not need webhooks, assume live. For MVP, we use webhooks for smart-forms.
       const isImplemented = IMPLEMENTED_FEATURE_KEYS.has(feat.key);
 
       if (feat.type === "smart-form" && isLive && isImplemented) {

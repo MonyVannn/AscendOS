@@ -68,6 +68,15 @@ export default defineSchema({
     .index("by_agency", ["agencyId"])
     .index("by_agency_and_key", ["agencyId", "key"]),
 
+  agencyIntegrationEntitlements: defineTable({
+    agencyId: v.id("agencies"),
+    key: v.string(),
+    isEnabled: v.boolean(),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_agency", ["agencyId"])
+    .index("by_agency_and_key", ["agencyId", "key"]),
+
   users: defineTable({
     clerkId: v.string(),
     email: v.optional(v.string()),

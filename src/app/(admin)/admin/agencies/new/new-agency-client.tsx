@@ -14,6 +14,7 @@ import {
   availableFeatures,
   type NewAgencyFormInput,
 } from "@/lib/forms/new-agency-schema";
+import { GHL_INBOUND_WEBHOOK_KEYS } from "@/lib/ghl/inbound-webhook-registry";
 import {
   firstValidationMessage,
   slugifyNameToSlug,
@@ -29,6 +30,7 @@ const defaultFormValues: NewAgencyFormInput = {
   ghlLocationId: "",
   ghlAccessToken: "",
   featureKeys: ["beast-mode-drip", "field-trainer", "resource-hub"],
+  integrationKeys: ["field-trainer-drip"],
   theme: {
     primaryColor: "#0075de",
     accentColor: "#097fe8",
@@ -74,6 +76,7 @@ export function NewAgencyClient() {
           ghlLocationId: value.ghlLocationId,
           ghlAccessToken: value.ghlAccessToken,
           featureKeys: value.featureKeys,
+          integrationKeys: value.integrationKeys,
           theme:
             showBrandTheme && theme
               ? {
@@ -382,6 +385,65 @@ export function NewAgencyClient() {
                 </div>
                 <p className="text-[13px] text-zinc-500 mt-1">
                   Note: The <strong className="font-semibold text-zinc-700">resource-hub</strong> feature is pinned and always visible to RDs on the sidebar. Toggling it here only controls if it can be customized.
+                </p>
+              </div>
+            );
+          }}
+        </form.Field>
+
+        <form.Field name="integrationKeys">
+          {(field) => {
+            const msg = firstValidationMessage(field.state.meta.errors);
+            return (
+              <div className="space-y-3">
+                <div className="flex justify-between items-start gap-3">
+                  <label className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+                    GHL Integrations
+                  </label>
+                  {msg ? (
+                    <span className={LABEL_ERR_ASIDE} role="alert">
+                      {msg}
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold tracking-widest text-zinc-400 uppercase">
+                      Click to toggle
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2 p-4 bg-zinc-50 border border-zinc-100 rounded-md">
+                  {GHL_INBOUND_WEBHOOK_KEYS.map((entry) => {
+                    const active = field.state.value.includes(entry.key);
+                    return (
+                      <button
+                        key={entry.key}
+                        type="button"
+                        onClick={() => {
+                          const next = active
+                            ? field.state.value.filter((id) => id !== entry.key)
+                            : [...field.state.value, entry.key];
+                          field.handleChange(next);
+                        }}
+                        className={`flex flex-col items-start px-4 py-3 rounded-md border text-left transition-colors ${
+                          active
+                            ? "bg-white border-blue-200 shadow-sm"
+                            : "bg-white border-zinc-200 hover:border-zinc-300"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className={`w-2 h-2 rounded-full ${active ? "bg-blue-500" : "bg-zinc-300"}`}
+                          ></span>
+                          <span className={`text-sm font-semibold ${active ? "text-blue-900" : "text-zinc-700"}`}>
+                            {entry.label}
+                          </span>
+                        </div>
+                        <span className="text-xs text-zinc-500 pl-4">{entry.description}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[13px] text-zinc-500 mt-1">
+                  Integrations control which GHL webhooks are available to configure. Features and Integrations are independent.
                 </p>
               </div>
             );

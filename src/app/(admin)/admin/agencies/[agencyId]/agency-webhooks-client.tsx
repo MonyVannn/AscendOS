@@ -56,10 +56,12 @@ export function AgencyWebhooksClient({ agencyId }: { agencyId: string }) {
   );
   const upsert = useMutation(api.admin.upsertAgencyInboundWebhook);
   const remove = useMutation(api.admin.deleteAgencyInboundWebhook);
+  const toggleIntegration = useMutation(api.admin.toggleAgencyIntegration);
 
   const [draftUrls, setDraftUrls] = React.useState<Record<string, string>>({});
   const [savingKey, setSavingKey] = React.useState<string | null>(null);
   const [deletingKey, setDeletingKey] = React.useState<string | null>(null);
+  const [togglingKey, setTogglingKey] = React.useState<string | null>(null);
   const [banner, setBanner] = React.useState<{
     type: "error" | "success";
     message: string;
@@ -175,21 +177,15 @@ export function AgencyWebhooksClient({ agencyId }: { agencyId: string }) {
 
   return (
     <div className="max-w-[1000px] mx-auto h-full flex flex-col pb-6">
-      <div className="mb-6">
-        <Link
-          href="/admin/agencies"
-          className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Agencies
-        </Link>
-        <p className="text-[10px] font-bold tracking-widest text-zinc-500 uppercase">
-          Inbound Webhooks
-        </p>
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
-          {data.agency.name}
-        </h1>
-        <p className="text-sm text-zinc-500 font-mono mt-1">{data.agency.slug}</p>
+      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
+            Agency Webhooks
+          </h2>
+          <p className="text-sm text-zinc-500 mt-1 max-w-2xl">
+            Integrations enable GHL webhooks. To show tools in the RD dashboard, enable the corresponding <strong>Features</strong> above.
+          </p>
+        </div>
       </div>
 
       {banner ? (
@@ -228,10 +224,16 @@ export function AgencyWebhooksClient({ agencyId }: { agencyId: string }) {
             const isSaving = savingKey === row.key;
             const isDeleting = deletingKey === row.key;
 
+            const isRegistryEntry = registry !== undefined;
+            const isEnabled = isRegistryEntry ? data.enabledIntegrationKeys.includes(row.key) : true;
+            const isToggling = togglingKey === row.key;
+
             return (
               <div
                 key={row.key}
-                className="grid grid-cols-1 md:grid-cols-[minmax(180px,1fr)_2fr_auto] gap-4 px-6 py-5 items-start"
+                className={`grid grid-cols-1 md:grid-cols-[minmax(180px,1fr)_2fr_auto] gap-4 px-6 py-5 items-start ${
+                  !isEnabled ? "opacity-60 grayscale-[0.5]" : ""
+                }`}
               >
                 <div className="space-y-1">
                   <div className="font-semibold text-sm text-zinc-950 dark:text-zinc-50">
@@ -268,7 +270,36 @@ export function AgencyWebhooksClient({ agencyId }: { agencyId: string }) {
                   disabled={isSaving || isDeleting}
                 />
 
-                <div className="flex items-center gap-2 md:justify-end">
+                <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                  {isRegistryEntry && (
+                    <Button
+                      type="button"
+                      variant={isEnabled ? "default" : "secondary"}
+                      size="sm"
+                      disabled={isToggling || isSaving || isDeleting}
+                      onClick={async () => {
+                        setTogglingKey(row.key);
+                        try {
+                          await toggleIntegration({
+                            agencyId: agencyIdTyped,
+                            key: row.key,
+                            isEnabled: !isEnabled,
+                          });
+                        } catch (err: unknown) {
+                          setBanner({
+                            type: "error",
+                            message: err instanceof Error ? err.message : "Failed to toggle integration",
+                          });
+                        } finally {
+                          setTogglingKey(null);
+                        }
+                      }}
+                      className={isEnabled ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                    >
+                      {isToggling ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
+                      {isEnabled ? "Enabled" : "Disabled"}
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     size="sm"

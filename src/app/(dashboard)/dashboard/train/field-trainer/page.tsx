@@ -20,7 +20,7 @@ export default async function FieldTrainerDripPage() {
         </div>
       </div>
 
-      <FieldTrainerPageClient user={tenant.user} agency={tenant.agency} />
+      <FieldTrainerPageClient user={tenant.user} agency={tenant.agency} enabledIntegrations={tenant.enabledIntegrations || []} />
     </div>
   );
 }

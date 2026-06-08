@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTenantContext } from "@/lib/tenant";
+import { PendingSignOut } from "@/components/pending/pending-sign-out";
 
 export default async function PendingPage() {
   const tenant = await getTenantContext();
@@ -10,6 +11,7 @@ export default async function PendingPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Setting up your account...</h1>
           <p className="text-gray-600">Please wait a moment while we sync your details.</p>
+          <PendingSignOut />
         </div>
       </div>
     );
@@ -31,6 +33,7 @@ export default async function PendingPage() {
           Your account has been created, but you haven&apos;t been assigned to an agency yet. 
           Please contact your administrator to complete your onboarding.
         </p>
+        <PendingSignOut />
       </div>
     </div>
   );
