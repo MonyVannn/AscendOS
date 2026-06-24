@@ -176,7 +176,7 @@ export function AgencyWebhooksClient({ agencyId }: { agencyId: string }) {
   };
 
   return (
-    <div className="max-w-[1000px] mx-auto h-full flex flex-col pb-6">
+    <div className="max-w-[1400px] mx-auto h-full flex flex-col pb-6">
       <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">
