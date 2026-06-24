@@ -5,6 +5,7 @@ import type { Id } from "./_generated/dataModel";
 
 import { agencyRoleValidator } from "./roles";
 import { getEnabledIntegrationKeys, setIntegrationEnabled, KNOWN_INTEGRATION_KEYS } from "./lib/integrationEntitlements";
+import { FEATURE_TO_WEBHOOK_KEY } from "../src/lib/feature-tool-mapping";
 
 export const assignUserToAgency = mutation({
   args: {
@@ -378,6 +379,160 @@ async function requireSuperAdmin(ctx: AdminCtx) {
   }
 }
 
+export const listAgencyTools = query({
+  args: { agencyId: v.id("agencies") },
+  handler: async (ctx, { agencyId }) => {
+    await requireSuperAdmin(ctx);
+
+    const agency = await ctx.db.get(agencyId);
+    if (!agency) {
+      throw new Error("Agency not found");
+    }
+
+    const allFeatures = await ctx.db.query("features").collect();
+    const activeFeatures = allFeatures.filter((f) => f.isActive);
+    
+    const agencyFeatures = await ctx.db
+      .query("agencyFeatures")
+      .withIndex("by_agency", (q) => q.eq("agencyId", agencyId))
+      .collect();
+
+    const enabledIntegrationKeys = await getEnabledIntegrationKeys(ctx.db, agencyId);
+    
+    const webhooks = await ctx.db
+      .query("agencyGhlInboundWebhooks")
+      .withIndex("by_agency", (q) => q.eq("agencyId", agencyId))
+      .collect();
+
+    const webhookUrlsByKey = new Map<string, string>();
+    for (const w of webhooks) {
+      if (w.url.trim()) {
+        webhookUrlsByKey.set(w.key, w.url.trim());
+      }
+    }
+    
+    if (agency.ghlWebhookUrl?.trim() && !webhookUrlsByKey.has(SEND_EMAIL_TEMPLATE_KEY)) {
+      webhookUrlsByKey.set(SEND_EMAIL_TEMPLATE_KEY, agency.ghlWebhookUrl.trim());
+    }
+
+    const tools = activeFeatures.map((feat) => {
+      const af = agencyFeatures.find((a) => a.featureId === feat._id);
+      const isFeatureEnabled = af?.isEnabled ?? false;
+      
+      let webhookKeys: string[] = [];
+      if (feat.key === "field-trainer") {
+        webhookKeys = ["field-trainer-drip", "field-trainer-reposition"];
+      } else {
+        // Map feature key to webhook key if one exists
+        const mappedKey = FEATURE_TO_WEBHOOK_KEY[feat.key];
+        if (mappedKey) {
+          webhookKeys = [mappedKey];
+        }
+      }
+
+      const integrationsEnabled = webhookKeys.length > 0 
+        ? webhookKeys.every(k => enabledIntegrationKeys.includes(k))
+        : true; // If no webhooks needed, consider it enabled
+
+      const hasAllUrls = webhookKeys.length > 0
+        ? webhookKeys.every(k => webhookUrlsByKey.has(k))
+        : true;
+
+      let status: "off" | "visible" | "live" = "off";
+      if (isFeatureEnabled) {
+        if (integrationsEnabled && hasAllUrls) {
+          status = "live";
+        } else {
+          status = "visible";
+        }
+      }
+
+      return {
+        featureId: feat._id,
+        key: feat.key,
+        label: feat.label,
+        pillar: feat.pillar,
+        customLabel: af?.customLabel,
+        isFeatureEnabled,
+        sortOrder: af?.sortOrder ?? feat.sortOrder,
+        webhookKeys,
+        status,
+        urls: webhookKeys.reduce((acc, k) => {
+          acc[k] = webhookUrlsByKey.get(k) ?? "";
+          return acc;
+        }, {} as Record<string, string>),
+      };
+    });
+
+    return {
+      agency: {
+        _id: agency._id,
+        name: agency.name,
+        slug: agency.slug,
+      },
+      tools,
+    };
+  },
+});
+
+export const setAgencyToolEnabled = mutation({
+  args: {
+    agencyId: v.id("agencies"),
+    featureKey: v.string(),
+    isEnabled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await requireSuperAdmin(ctx);
+
+    const feature = await ctx.db
+      .query("features")
+      .withIndex("by_key", (q) => q.eq("key", args.featureKey))
+      .unique();
+
+    if (!feature || !feature.isActive) {
+      throw new Error(`Unknown or inactive feature key: ${args.featureKey}`);
+    }
+
+    // 1. Set agencyFeatures.isEnabled
+    const existingJoin = await ctx.db
+      .query("agencyFeatures")
+      .withIndex("by_agency_and_feature", (q) => 
+        q.eq("agencyId", args.agencyId).eq("featureId", feature._id)
+      )
+      .unique();
+
+    if (existingJoin) {
+      await ctx.db.patch(existingJoin._id, { isEnabled: args.isEnabled });
+    } else if (args.isEnabled) {
+      await ctx.db.insert("agencyFeatures", {
+        agencyId: args.agencyId,
+        featureId: feature._id,
+        isEnabled: true,
+        sortOrder: feature.sortOrder,
+      });
+    }
+
+    // 2. Set integration entitlement(s)
+    let webhookKeys: string[] = [];
+    if (args.featureKey === "field-trainer") {
+      webhookKeys = ["field-trainer-drip", "field-trainer-reposition"];
+    } else {
+      const mappedKey = FEATURE_TO_WEBHOOK_KEY[args.featureKey];
+      if (mappedKey) {
+        webhookKeys = [mappedKey];
+      }
+    }
+
+    for (const key of webhookKeys) {
+      await setIntegrationEnabled(ctx.db, args.agencyId, key, args.isEnabled);
+    }
+    
+    // We do NOT delete webhook URLs when disabling.
+    
+    return { success: true };
+  },
+});
+
 export const listAgencyFeatures = query({
   args: { agencyId: v.id("agencies") },
   handler: async (ctx, { agencyId }) => {
@@ -525,25 +680,6 @@ export const toggleAgencyIntegration = mutation({
   handler: async (ctx, args) => {
     await requireSuperAdmin(ctx);
     await setIntegrationEnabled(ctx.db, args.agencyId, args.key, args.isEnabled);
-
-    if (!args.isEnabled) {
-      // optionally delete the webhook URL row for that key
-      const existingUrl = await ctx.db
-        .query("agencyGhlInboundWebhooks")
-        .withIndex("by_agency_and_key", (q) => q.eq("agencyId", args.agencyId).eq("key", args.key))
-        .first();
-
-      if (existingUrl) {
-        await ctx.db.delete(existingUrl._id);
-      }
-      
-      if (args.key === SEND_EMAIL_TEMPLATE_KEY) {
-        const agency = await ctx.db.get(args.agencyId);
-        if (agency?.ghlWebhookUrl !== undefined) {
-          await ctx.db.patch(args.agencyId, { ghlWebhookUrl: undefined });
-        }
-      }
-    }
   },
 });
 
@@ -585,6 +721,9 @@ export const upsertAgencyInboundWebhook = mutation({
         await ctx.db.patch(args.agencyId, { ghlWebhookUrl: undefined });
       }
     }
+
+    // Auto-enable integration when a webhook URL is saved
+    await setIntegrationEnabled(ctx.db, args.agencyId, args.key, true);
 
     return { success: true };
   },

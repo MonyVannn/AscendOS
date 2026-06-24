@@ -1,5 +1,4 @@
-import { AgencyWebhooksClient } from "./agency-webhooks-client";
-import { AgencyFeaturesClient } from "./agency-features-client";
+import { AgencyToolsClient } from "./agency-tools-client";
 
 export const metadata = {
   title: "Agency Settings | AscendOS Admin",
@@ -13,8 +12,7 @@ export default async function AgencySettingsPage({
   const { agencyId } = await params;
   return (
     <div className="space-y-12">
-      <AgencyFeaturesClient agencyId={agencyId} />
-      <AgencyWebhooksClient agencyId={agencyId} />
+      <AgencyToolsClient agencyId={agencyId} />
     </div>
   );
 }

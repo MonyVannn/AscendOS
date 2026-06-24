@@ -1,5 +1,11 @@
 export const GHL_INBOUND_WEBHOOK_KEYS = [
   {
+    key: "beast-mode-drip",
+    label: "Beast Mode Drip",
+    description:
+      "Powers the Beast Mode + Quick Start drip form in the RD dashboard recruit pillar.",
+  },
+  {
     key: "send-email-template",
     label: "Send Email Template",
     description:

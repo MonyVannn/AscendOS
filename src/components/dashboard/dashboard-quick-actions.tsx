@@ -57,7 +57,7 @@ function QuickActionCard({ action, nowMs }: { action: QuickActionItem; nowMs: nu
         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.isImplemented ? "bg-accent/10 text-accent" : "bg-muted text-muted-foreground"}`}>
           <Icon className="h-5 w-5" />
         </div>
-        {action.isImplemented ? (
+        {action.isLive ? (
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             Live

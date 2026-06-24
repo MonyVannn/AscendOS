@@ -40,6 +40,7 @@ export function getToolDisplayName(toolName: string): string {
 
 /** Features with implemented dashboard pages (MVP). */
 export const IMPLEMENTED_FEATURE_KEYS = new Set([
+  "beast-mode-drip",
   "send-email-template",
   "field-trainer",
   "remove-agent",

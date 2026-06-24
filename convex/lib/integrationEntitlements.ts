@@ -2,6 +2,7 @@ import { Id } from "../_generated/dataModel";
 import { DatabaseReader, DatabaseWriter } from "../_generated/server";
 
 export const KNOWN_INTEGRATION_KEYS = [
+  "beast-mode-drip",
   "send-email-template",
   "field-trainer-drip",
   "field-trainer-reposition",

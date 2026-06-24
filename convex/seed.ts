@@ -416,3 +416,67 @@ export const backfillIntegrationEntitlements = internalMutation({
     return `Enabled ${enabled} new integration entitlements across ${agencies.length} agencies`;
   }
 });
+const RISE_BEAST_MODE_WEBHOOK_URL = "https://services.leadconnectorhq.com/hooks/JeieskgnqqWMrSrGVc21/webhook-trigger/db55d74f-5a1c-4be9-ab55-1b90024d553c";
+
+export const configureRiseBeastModeWebhook = internalMutation({
+  handler: async (ctx) => {
+    const agencies = await ctx.db.query("agencies").collect();
+    const rise = agencies.find((a) => a.name.toLowerCase().includes("rise"));
+    if (!rise) {
+      return "RISE agency not found";
+    }
+
+    await setIntegrationEnabled(ctx.db, rise._id, "beast-mode-drip", true);
+
+    const existing = await ctx.db
+      .query("agencyGhlInboundWebhooks")
+      .withIndex("by_agency_and_key", (q) =>
+        q.eq("agencyId", rise._id).eq("key", "beast-mode-drip")
+      )
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        url: RISE_BEAST_MODE_WEBHOOK_URL,
+        updatedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("agencyGhlInboundWebhooks", {
+        agencyId: rise._id,
+        key: "beast-mode-drip",
+        url: RISE_BEAST_MODE_WEBHOOK_URL,
+        updatedAt: Date.now(),
+      });
+    }
+
+    const feature = await ctx.db
+      .query("features")
+      .withIndex("by_key", (q) => q.eq("key", "beast-mode-drip"))
+      .unique();
+
+    if (feature) {
+      const existingJoin = await ctx.db
+        .query("agencyFeatures")
+        .withIndex("by_agency_and_feature", (q) =>
+          q.eq("agencyId", rise._id).eq("featureId", feature._id)
+        )
+        .unique();
+
+      if (existingJoin) {
+        if (!existingJoin.isEnabled) {
+          await ctx.db.patch(existingJoin._id, { isEnabled: true });
+        }
+      } else {
+        await ctx.db.insert("agencyFeatures", {
+          agencyId: rise._id,
+          featureId: feature._id,
+          isEnabled: true,
+          sortOrder: feature.sortOrder,
+        });
+      }
+    }
+
+    return `Configured beast-mode-drip for RISE (${rise._id})`;
+  },
+});
+
