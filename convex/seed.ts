@@ -2,6 +2,8 @@ import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { INITIAL_FEATURES } from "./featureRegistry";
 import { KNOWN_INTEGRATION_KEYS, setIntegrationEnabled } from "./lib/integrationEntitlements";
+import { GHL_INBOUND_WEBHOOK_KEYS } from "../src/lib/ghl/inbound-webhook-registry";
+import { FEATURE_TO_WEBHOOK_KEY, FEATURE_TO_TOOL_NAME } from "../src/lib/feature-tool-mapping";
 
 /**
  * One-time: backfills optional expanded fields in `agencyThemes` based on legacy tokens.
@@ -224,20 +226,100 @@ export const promoteFirstUserToSuperAdmin = internalMutation({
   },
 });
 
+export const seedIntegrationRegistry = internalMutation({
+  handler: async (ctx) => {
+    let inserted = 0;
+    let updated = 0;
+    
+    let sortOrder = 10;
+    for (const entry of GHL_INBOUND_WEBHOOK_KEYS) {
+      const integration = {
+        key: entry.key,
+        label: entry.label,
+        description: entry.description,
+        isActive: true,
+        sortOrder,
+      };
+      
+      const existing = await ctx.db
+        .query("integrations")
+        .withIndex("by_key", (q) => q.eq("key", entry.key))
+        .unique();
+        
+      if (existing) {
+        await ctx.db.patch(existing._id, integration);
+        updated++;
+      } else {
+        await ctx.db.insert("integrations", integration);
+        inserted++;
+      }
+      sortOrder += 10;
+    }
+    return { inserted, updated };
+  }
+});
+
+export const backfillFeatureIntegrationKeys = internalMutation({
+  handler: async (ctx) => {
+    const features = await ctx.db.query("features").collect();
+    let updated = 0;
+
+    for (const feature of features) {
+      let integrationKeys: string[] = [];
+      if (feature.key === "field-trainer") {
+        integrationKeys = ["field-trainer-drip", "field-trainer-reposition"];
+      } else {
+        const mappedKey = FEATURE_TO_WEBHOOK_KEY[feature.key];
+        if (mappedKey) {
+          integrationKeys = [mappedKey];
+        }
+      }
+
+      const toolName = FEATURE_TO_TOOL_NAME[feature.key];
+
+      await ctx.db.patch(feature._id, {
+        integrationKeys,
+        toolName,
+      });
+      updated++;
+    }
+
+    return { updated };
+  }
+});
+
 export const seedFeatureRegistry = internalMutation({
   handler: async (ctx) => {
     let inserted = 0;
     let updated = 0;
     for (const feature of INITIAL_FEATURES) {
+      let integrationKeys: string[] = [];
+      if (feature.key === "field-trainer") {
+        integrationKeys = ["field-trainer-drip", "field-trainer-reposition"];
+      } else {
+        const mappedKey = FEATURE_TO_WEBHOOK_KEY[feature.key];
+        if (mappedKey) {
+          integrationKeys = [mappedKey];
+        }
+      }
+
+      const toolName = FEATURE_TO_TOOL_NAME[feature.key];
+
+      const fullFeature = {
+        ...feature,
+        integrationKeys,
+        toolName,
+      };
+
       const existing = await ctx.db
         .query("features")
         .withIndex("by_key", (q) => q.eq("key", feature.key))
         .unique();
       if (existing) {
-        await ctx.db.patch(existing._id, feature);
+        await ctx.db.patch(existing._id, fullFeature);
         updated++;
       } else {
-        await ctx.db.insert("features", feature);
+        await ctx.db.insert("features", fullFeature);
         inserted++;
       }
     }

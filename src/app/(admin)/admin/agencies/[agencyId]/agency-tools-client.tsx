@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { getWebhookRegistryEntry } from "@/lib/ghl/inbound-webhook-registry";
 
 export function AgencyToolsClient({ agencyId }: { agencyId: string }) {
   const { isAuthenticated } = useConvexAuth();
@@ -237,25 +236,25 @@ export function AgencyToolsClient({ agencyId }: { agencyId: string }) {
 
                       {tool.webhookKeys.length > 0 && (
                         <div className="pl-4 border-l-2 border-zinc-100 dark:border-zinc-800 space-y-4 mt-2">
-                          {tool.webhookKeys.map(webhookKey => {
+                          {tool.integrations.map(integration => {
+                            const webhookKey = integration.key;
                             const isSaving = savingKey === webhookKey;
                             const isDeleting = deletingKey === webhookKey;
-                            const registry = getWebhookRegistryEntry(webhookKey);
                             const hasUrl = Boolean(tool.urls[webhookKey]);
 
                             return (
                               <div key={webhookKey} className="space-y-2">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                                    {registry?.label || webhookKey}
+                                    {integration.label || webhookKey}
                                   </span>
                                   <span className="font-mono text-[10px] text-zinc-400 bg-zinc-100 dark:bg-zinc-900 px-1.5 py-0.5 rounded">
                                     {webhookKey}
                                   </span>
                                 </div>
-                                {registry?.description && (
+                                {integration.description && (
                                   <p className="text-xs text-zinc-500 max-w-3xl">
-                                    {registry.description}
+                                    {integration.description}
                                   </p>
                                 )}
                                 <div className="flex gap-2 max-w-3xl">

@@ -57,6 +57,8 @@ export function AdminSidebar({ tenant }: AdminSidebarProps) {
   ];
 
   const systemNav = [
+    { name: "Features", href: "/admin/features", icon: LayoutDashboard },
+    { name: "Integrations", href: "/admin/integrations", icon: Webhook },
     { name: "Platform Admins", href: "/admin/platform-admins", icon: ShieldAlert },
     { name: "Settings", href: "/admin/settings", icon: Settings },
     { name: "Audit Trail", href: "/admin/audit", icon: FileText },

@@ -68,7 +68,7 @@ export const newAgencySchema = z.object({
     .string()
     .trim()
     .refine((v) => v.length > 0, { message: "Required" }),
-  featureKeys: z.array(z.enum(availableFeatures)),
+  featureKeys: z.array(z.string()),
   integrationKeys: z.array(z.string()),
   theme: agencyThemeSchema.optional(),
 });

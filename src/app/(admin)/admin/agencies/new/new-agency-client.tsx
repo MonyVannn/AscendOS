@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,8 @@ import { ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useForm } from "@tanstack/react-form";
 import {
   newAgencySchema,
-  availableFeatures,
   type NewAgencyFormInput,
 } from "@/lib/forms/new-agency-schema";
-import { GHL_INBOUND_WEBHOOK_KEYS } from "@/lib/ghl/inbound-webhook-registry";
 import {
   firstValidationMessage,
   slugifyNameToSlug,
@@ -47,6 +45,8 @@ const defaultFormValues: NewAgencyFormInput = {
 export function NewAgencyClient() {
   const router = useRouter();
   const createAgency = useMutation(api.admin.createAgency);
+  const features = useQuery(api.catalog.listFeaturesAdmin);
+  const integrations = useQuery(api.catalog.listIntegrations);
 
   const [showToken, setShowToken] = React.useState(false);
   const [showBrandTheme, setShowBrandTheme] = React.useState(false);
@@ -357,17 +357,17 @@ export function NewAgencyClient() {
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2 p-4 bg-zinc-50 border border-zinc-100 rounded-md">
-                  {availableFeatures.map((f) => {
-                    const active = field.state.value.includes(f);
+                  {features?.filter(f => f.isActive).map((f) => {
+                    const active = field.state.value.includes(f.key as any);
                     return (
                       <button
-                        key={f}
+                        key={f.key}
                         type="button"
                         onClick={() => {
                           const next = active
-                            ? field.state.value.filter((id) => id !== f)
-                            : [...field.state.value, f];
-                          field.handleChange(next);
+                            ? field.state.value.filter((id) => id !== f.key)
+                            : [...field.state.value, f.key];
+                          field.handleChange(next as any);
                         }}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-colors ${
                           active
@@ -378,7 +378,7 @@ export function NewAgencyClient() {
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${active ? "bg-blue-500" : "bg-transparent"}`}
                         ></span>
-                        {f}
+                        {f.label}
                       </button>
                     );
                   })}
@@ -411,7 +411,7 @@ export function NewAgencyClient() {
                   )}
                 </div>
                 <div className="flex flex-col gap-2 p-4 bg-zinc-50 border border-zinc-100 rounded-md">
-                  {GHL_INBOUND_WEBHOOK_KEYS.map((entry) => {
+                  {integrations?.filter(i => i.isActive).map((entry) => {
                     const active = field.state.value.includes(entry.key);
                     return (
                       <button

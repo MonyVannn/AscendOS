@@ -4,7 +4,7 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 
 import { agencyRoleValidator } from "./roles";
-import { getEnabledIntegrationKeys, setIntegrationEnabled, KNOWN_INTEGRATION_KEYS } from "./lib/integrationEntitlements";
+import { getEnabledIntegrationKeys, setIntegrationEnabled, getActiveIntegrationKeys } from "./lib/integrationEntitlements";
 import { FEATURE_TO_WEBHOOK_KEY } from "../src/lib/feature-tool-mapping";
 
 export const assignUserToAgency = mutation({
@@ -363,9 +363,9 @@ export const checkSlug = query({
 
 const SEND_EMAIL_TEMPLATE_KEY = "send-email-template";
 
-type AdminCtx = QueryCtx | MutationCtx;
+export type AdminCtx = QueryCtx | MutationCtx;
 
-async function requireSuperAdmin(ctx: AdminCtx) {
+export async function requireSuperAdmin(ctx: AdminCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new Error("Unauthenticated");
 
@@ -391,6 +391,7 @@ export const listAgencyTools = query({
 
     const allFeatures = await ctx.db.query("features").collect();
     const activeFeatures = allFeatures.filter((f) => f.isActive);
+    const allIntegrations = await ctx.db.query("integrations").collect();
     
     const agencyFeatures = await ctx.db
       .query("agencyFeatures")
@@ -419,16 +420,7 @@ export const listAgencyTools = query({
       const af = agencyFeatures.find((a) => a.featureId === feat._id);
       const isFeatureEnabled = af?.isEnabled ?? false;
       
-      let webhookKeys: string[] = [];
-      if (feat.key === "field-trainer") {
-        webhookKeys = ["field-trainer-drip", "field-trainer-reposition"];
-      } else {
-        // Map feature key to webhook key if one exists
-        const mappedKey = FEATURE_TO_WEBHOOK_KEY[feat.key];
-        if (mappedKey) {
-          webhookKeys = [mappedKey];
-        }
-      }
+      let webhookKeys: string[] = feat.integrationKeys || [];
 
       const integrationsEnabled = webhookKeys.length > 0 
         ? webhookKeys.every(k => enabledIntegrationKeys.includes(k))
@@ -456,6 +448,14 @@ export const listAgencyTools = query({
         isFeatureEnabled,
         sortOrder: af?.sortOrder ?? feat.sortOrder,
         webhookKeys,
+        integrations: webhookKeys.map(k => {
+          const integration = allIntegrations.find(i => i.key === k);
+          return {
+            key: k,
+            label: integration?.label || k,
+            description: integration?.description || "",
+          };
+        }),
         status,
         urls: webhookKeys.reduce((acc, k) => {
           acc[k] = webhookUrlsByKey.get(k) ?? "";
@@ -513,15 +513,7 @@ export const setAgencyToolEnabled = mutation({
     }
 
     // 2. Set integration entitlement(s)
-    let webhookKeys: string[] = [];
-    if (args.featureKey === "field-trainer") {
-      webhookKeys = ["field-trainer-drip", "field-trainer-reposition"];
-    } else {
-      const mappedKey = FEATURE_TO_WEBHOOK_KEY[args.featureKey];
-      if (mappedKey) {
-        webhookKeys = [mappedKey];
-      }
-    }
+    let webhookKeys: string[] = feature.integrationKeys || [];
 
     for (const key of webhookKeys) {
       await setIntegrationEnabled(ctx.db, args.agencyId, key, args.isEnabled);
@@ -545,6 +537,7 @@ export const listAgencyFeatures = query({
 
     const allFeatures = await ctx.db.query("features").collect();
     const activeFeatures = allFeatures.filter((f) => f.isActive);
+    const allIntegrations = await ctx.db.query("integrations").collect();
     
     const agencyFeatures = await ctx.db
       .query("agencyFeatures")
@@ -843,9 +836,10 @@ export const createAgency = mutation({
       });
     }
 
+    const activeIntegrationKeys = await getActiveIntegrationKeys(ctx.db);
     const validIntegrations = [];
     for (const key of args.integrationKeys) {
-      if (KNOWN_INTEGRATION_KEYS.includes(key)) {
+      if (activeIntegrationKeys.includes(key)) {
         validIntegrations.push(key);
       }
     }

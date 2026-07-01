@@ -109,6 +109,14 @@ export default defineSchema({
     .index("by_agency_submitted", ["agencyId", "submittedAt"])
     .index("by_submitted", ["submittedAt"]),
 
+  integrations: defineTable({
+    key: v.string(),
+    label: v.string(),
+    description: v.string(),
+    isActive: v.boolean(),
+    sortOrder: v.number(),
+  }).index("by_key", ["key"]),
+
   features: defineTable({
     key: v.string(),
     label: v.string(),
@@ -127,6 +135,8 @@ export default defineSchema({
     icon: v.string(),
     isActive: v.boolean(),
     sortOrder: v.number(),
+    integrationKeys: v.optional(v.array(v.string())),
+    toolName: v.optional(v.string()),
   })
     .index("by_key", ["key"])
     .index("by_pillar", ["pillar"]),

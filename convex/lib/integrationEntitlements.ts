@@ -9,6 +9,11 @@ export const KNOWN_INTEGRATION_KEYS = [
   "remove-agent",
 ];
 
+export async function getActiveIntegrationKeys(db: DatabaseReader): Promise<string[]> {
+  const integrations = await db.query("integrations").collect();
+  return integrations.filter(i => i.isActive).map(i => i.key);
+}
+
 export async function isIntegrationEnabled(
   db: DatabaseReader,
   agencyId: Id<"agencies">,
