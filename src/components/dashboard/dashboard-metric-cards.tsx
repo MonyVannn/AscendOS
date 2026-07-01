@@ -9,7 +9,7 @@ export function DashboardMetricCards({ metrics }: DashboardMetricCardsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <MetricCard
-        title="Forms triggered"
+        title="Active campaigns"
         value={metrics.formsTriggered.value.toString()}
         delta={metrics.formsTriggered.delta}
         deltaPct={metrics.formsTriggered.deltaPct}

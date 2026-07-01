@@ -53,7 +53,7 @@ export function FieldTrainerSelector({
             
             return (
               <SelectItem key={t.value} value={t.value} className="py-2.5">
-                <div className="w-full flex items-center pr-20 min-w-0">
+                <div className="w-full flex items-center min-w-0">
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar className="size-9 border border-border shrink-0">
                       <AvatarFallback className="bg-background text-foreground text-xs font-medium">
@@ -66,11 +66,6 @@ export function FieldTrainerSelector({
                         {t.email}
                       </span>
                     </div>
-                  </div>
-                  <div className="absolute right-9 top-1/2 -translate-y-1/2 flex flex-col items-end">
-                    <span className="font-medium text-foreground leading-tight text-sm">
-                      {t.role}
-                    </span>
                   </div>
                 </div>
               </SelectItem>

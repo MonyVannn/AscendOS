@@ -13,7 +13,7 @@ import { DashboardPeriod } from "@/lib/dashboard-period";
 
 interface DashboardGreetingHeaderProps {
   userName: string;
-  formsReadyCount: number;
+  onboardingCompletedCount: number;
   periodLabel: string;
   period: DashboardPeriod;
   onPeriodChange: (period: DashboardPeriod) => void;
@@ -27,7 +27,7 @@ interface DashboardGreetingHeaderProps {
 
 export function DashboardGreetingHeader({
   userName,
-  formsReadyCount,
+  onboardingCompletedCount,
   periodLabel,
   onPeriodChange,
   metrics,
@@ -35,7 +35,7 @@ export function DashboardGreetingHeader({
 }: DashboardGreetingHeaderProps) {
   const firstName = userName.split(" ")[0];
   const dateStr = formatGreetingDate();
-  const formsText = formsReadyCount === 1 ? "1 form" : `${formsReadyCount} forms`;
+  const formsText = onboardingCompletedCount === 1 ? "1 agent has completed onboarding" : `${onboardingCompletedCount} agents have completed onboarding`;
 
   const hour = new Date().getHours();
   let greeting = "Good morning";
@@ -49,13 +49,13 @@ export function DashboardGreetingHeader({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end justify-between">
       <div className="space-y-2">
         <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-          {dateStr} <span className="text-muted-foreground/30">•</span> {formsText} ready to fire
+          {dateStr} <span className="text-muted-foreground/30">•</span> {formsText}
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           {greeting}, <span className="text-accent">{firstName}</span>.
         </h1>
         <p className="text-muted-foreground max-w-2xl text-sm">
-          Your team triggered <strong>{metrics.formsTriggered}</strong> {metrics.formsTriggered === 1 ? "form" : "forms"} {periodLabel.toLowerCase()} — <strong>{metrics.activeAgents}</strong> {metrics.activeAgents === 1 ? "agent" : "agents"} in Field Trainer and <strong>{metrics.contactsReached}</strong> {metrics.contactsReached === 1 ? "contact" : "contacts"} reached.
+          Your team ran <strong>{metrics.formsTriggered}</strong> active {metrics.formsTriggered === 1 ? "campaign" : "campaigns"} {periodLabel.toLowerCase()} — <strong>{metrics.activeAgents}</strong> {metrics.activeAgents === 1 ? "agent" : "agents"} in Field Trainer and <strong>{metrics.contactsReached}</strong> {metrics.contactsReached === 1 ? "contact" : "contacts"} reached.
         </p>
       </div>
 

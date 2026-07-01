@@ -8,7 +8,7 @@ export type UserRole = PlatformRole | AgencyRole;
 export const ROLE_LABELS: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",
   RD: "Regional Director",
-  MD: "Marketing Director",
+  MD: "Market Director",
   AGENT: "Agent",
 };
 

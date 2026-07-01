@@ -144,7 +144,6 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
             className="relative text-muted-foreground"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary border-2 border-background" />
           </Button>
           <Button
             variant="ghost"

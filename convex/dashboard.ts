@@ -153,6 +153,7 @@ export const getSummary = query({
       .collect();
       
     const activeAgentsTotal = fieldTrainerEnrollments.filter(e => e.programStatus === "active").length;
+    const onboardingCompletedCount = fieldTrainerEnrollments.filter(e => e.programStatus === "completed").length;
     const newAgentsCurrent = fieldTrainerEnrollments.filter(e => e.programStartedAt >= args.periodStartMs && e.programStartedAt <= args.periodEndMs).length;
     const newAgentsPrior = fieldTrainerEnrollments.filter(e => e.programStartedAt >= args.priorStartMs && e.programStartedAt <= args.priorEndMs).length;
 
@@ -211,6 +212,7 @@ export const getSummary = query({
       profileComplete,
       ghlConnected,
       formsReadyCount,
+      onboardingCompletedCount,
       metrics,
       quickActions,
       recentActivity,

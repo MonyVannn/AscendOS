@@ -50,7 +50,7 @@ export function DashboardPageClient({ tenant }: DashboardPageClientProps) {
       
       <DashboardGreetingHeader
         userName={tenant.user.name || "User"}
-        formsReadyCount={summary.formsReadyCount}
+        onboardingCompletedCount={summary.onboardingCompletedCount}
         periodLabel={periodRange.label}
         period={period}
         onPeriodChange={setPeriod}
