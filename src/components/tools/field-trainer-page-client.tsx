@@ -19,9 +19,6 @@ interface FieldTrainerPageClientProps {
   enabledIntegrations: string[];
 }
 
-const tabTriggerClassName =
-  "h-full px-4 text-sm font-medium rounded-md text-foreground/70 data-active:bg-zinc-800 data-active:text-white dark:data-active:bg-zinc-200 dark:data-active:text-zinc-900 dark:data-active:shadow-none";
-
 export function FieldTrainerPageClient({ user, agency, enabledIntegrations }: FieldTrainerPageClientProps) {
   const hasDrip = enabledIntegrations.includes("field-trainer-drip");
   const hasReposition = enabledIntegrations.includes("field-trainer-reposition");
@@ -39,19 +36,19 @@ export function FieldTrainerPageClient({ user, agency, enabledIntegrations }: Fi
 
   return (
     <Tabs defaultValue={defaultTab} className="w-full space-y-6">
-      <TabsList className="h-10 w-full sm:w-auto inline-flex items-center justify-start gap-1 rounded-lg border border-border bg-white p-1 shadow-sm dark:bg-zinc-950 overflow-x-auto">
+      <TabsList className="w-full sm:w-auto inline-flex items-center justify-start overflow-x-auto">
         {hasDrip && (
           <>
-            <TabsTrigger value="start" className={tabTriggerClassName}>
+            <TabsTrigger value="start">
               Start Production Drip
             </TabsTrigger>
-            <TabsTrigger value="reassign" className={tabTriggerClassName}>
+            <TabsTrigger value="reassign">
               Reassign Trainer
             </TabsTrigger>
           </>
         )}
         {hasReposition && (
-          <TabsTrigger value="reposition" className={tabTriggerClassName}>
+          <TabsTrigger value="reposition">
             Reposition Agent
           </TabsTrigger>
         )}

@@ -202,14 +202,14 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
               {user.name?.trim() ? (
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-border rounded-4xl bg-background/50 text-sm text-foreground">
+                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-border rounded-lg bg-background/50 text-sm text-foreground">
                     {user.name}
                   </div>
                 </div>
               ) : (
                 <div className="relative">
                   <AlertTriangle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-600 dark:text-amber-500" />
-                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/10 text-sm text-amber-700 dark:text-amber-500 rounded-4xl">
+                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/10 text-sm text-amber-700 dark:text-amber-500 rounded-lg">
                     <span className="italic">Not set in profile</span>
                   </div>
                 </div>
@@ -223,14 +223,14 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
               {user.email?.trim() ? (
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-border rounded-4xl bg-background/50 text-sm text-foreground">
+                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-border rounded-lg bg-background/50 text-sm text-foreground">
                     {user.email}
                   </div>
                 </div>
               ) : (
                 <div className="relative">
                   <AlertTriangle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-600 dark:text-amber-500" />
-                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/10 text-sm text-amber-700 dark:text-amber-500 rounded-4xl">
+                  <div className="flex items-center h-10 px-3 pl-9 border border-dashed border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/10 text-sm text-amber-700 dark:text-amber-500 rounded-lg">
                     <span className="italic">Not set in profile</span>
                   </div>
                 </div>
@@ -245,13 +245,13 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
             {user.bookingLink?.trim() ? (
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <div className="flex items-center justify-between h-10 pl-9 pr-1 border border-dashed border-border rounded-4xl bg-background/50 text-sm group">
+                <div className="flex items-center justify-between h-10 pl-9 pr-1 border border-dashed border-border rounded-lg bg-background/50 text-sm group">
                   <span className="text-muted-foreground truncate font-mono text-xs">{user.bookingLink}</span>
                   <Button 
                     type="button" 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 rounded-full px-3 text-muted-foreground hover:text-foreground shrink-0 bg-background border border-border shadow-sm opacity-90 group-hover:opacity-100 transition-opacity"
+                    className="h-8 rounded-lg px-3 text-muted-foreground hover:text-foreground shrink-0 bg-background border border-border shadow-sm opacity-90 group-hover:opacity-100 transition-opacity"
                     onClick={copyBookingLink}
                   >
                     {copied ? <span className="text-emerald-600 dark:text-emerald-500 text-xs font-medium">Copied!</span> : <><Copy className="w-3.5 h-3.5 mr-1" /> Copy</>}

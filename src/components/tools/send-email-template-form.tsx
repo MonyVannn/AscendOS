@@ -10,13 +10,20 @@ import {
   Lock,
   Copy,
   AlertTriangle,
-    Info,
-    ChevronDown,
+  Info,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FieldValidCheck } from "@/components/ui/field-valid-check";
+import { SelectFieldWithValidCheck } from "@/components/ui/select-field-with-valid-check";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { GHL_EMAIL_TEMPLATE_OPTIONS } from "@/lib/ghl/send-email-template";
 import { toast } from "sonner";
 
@@ -170,22 +177,21 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground/90">Email Template</label>
             <div className="relative">
-              <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <select
-                value={template}
-                onChange={(e) => setTemplate(e.target.value)}
-                className="flex h-10 w-full min-w-0 rounded-4xl border border-input bg-input/30 px-3 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 appearance-none md:text-sm pl-9 pr-10 cursor-pointer"
-              >
-                {GHL_EMAIL_TEMPLATE_OPTIONS.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-              <FieldValidCheck show={isTemplateValid} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none size-5" />
-              {!isTemplateValid && (
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              )}
+              <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+              <SelectFieldWithValidCheck isValid={isTemplateValid}>
+                <Select value={template} onValueChange={setTemplate}>
+                  <SelectTrigger className="w-full pl-9 pr-10 h-10 bg-input/30">
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GHL_EMAIL_TEMPLATE_OPTIONS.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </SelectFieldWithValidCheck>
             </div>
           </div>
         </div>
