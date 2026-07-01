@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizePhone } from "@/lib/phone/normalize";
 import { FIELD_TRAINER_OPTIONS } from "./field-trainer-options";
 
 const trainerValues = FIELD_TRAINER_OPTIONS.map((t) => t.value) as [string, ...string[]];
@@ -7,8 +8,15 @@ export const FIELD_TRAINER_START_TRIGGER_PRODUCTION_DRIP = "Production Drip Form
 export const FIELD_TRAINER_START_TRIGGER_REASSIGN = "Reassign Trainer Form Submitted";
 
 export const fieldTrainerDripSchema = z.object({
-  first_name: z.string().trim().min(1, "First name is required"),
-  phone: z.string().trim().min(1, "Phone number is required"),
+  first_name: z
+    .string()
+    .trim()
+    .min(3, "Agent name must be at least 3 characters"),
+  phone: z
+    .string()
+    .trim()
+    .transform(normalizePhone)
+    .refine((v) => /^\d{10}$/.test(v), "Phone number must be exactly 10 digits"),
   trainer: z.enum(trainerValues, {
     message: "Invalid trainer selected",
   }),

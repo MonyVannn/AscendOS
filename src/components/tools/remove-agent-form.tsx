@@ -10,6 +10,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SelectFieldWithValidCheck } from "@/components/ui/select-field-with-valid-check";
 import { toast } from "sonner";
 import { FieldTrainerAgentSelect } from "./field-trainer-agent-select";
 
@@ -36,7 +37,9 @@ export function RemoveAgentForm({ agency }: RemoveAgentFormProps) {
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const isFormValid = Boolean(selectedAgent);
+  const isAgentValid = Boolean(selectedAgent);
+
+  const isFormValid = isAgentValid;
 
   const handleSend = React.useCallback(async () => {
     if (!isFormValid || isSubmitting || !selectedAgent) return;
@@ -104,12 +107,15 @@ export function RemoveAgentForm({ agency }: RemoveAgentFormProps) {
           <label className="text-xs font-medium text-foreground/80">Select Agent</label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-            <FieldTrainerAgentSelect
-              value={selectedAgentId}
-              onValueChange={setSelectedAgentId}
-              disabled={isSubmitting}
-              enrollmentFilter="non-withdrawn"
-            />
+            <SelectFieldWithValidCheck isValid={isAgentValid}>
+              <FieldTrainerAgentSelect
+                value={selectedAgentId}
+                onValueChange={setSelectedAgentId}
+                disabled={isSubmitting}
+                enrollmentFilter="non-withdrawn"
+                className="pr-10"
+              />
+            </SelectFieldWithValidCheck>
           </div>
         </div>
 

@@ -16,8 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { FieldValidCheck } from "@/components/ui/field-valid-check";
 import { GHL_EMAIL_TEMPLATE_OPTIONS } from "@/lib/ghl/send-email-template";
 import { toast } from "sonner";
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
 
 interface SendEmailTemplateFormProps {
   user: {
@@ -32,10 +37,11 @@ interface SendEmailTemplateFormProps {
 }
 
 export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormProps) {
+  const defaultTemplate = GHL_EMAIL_TEMPLATE_OPTIONS[0].value;
   const [firstName, setFirstName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [company, setCompany] = React.useState("");
-  const [template, setTemplate] = React.useState<string>(GHL_EMAIL_TEMPLATE_OPTIONS[0].value);
+  const [template, setTemplate] = React.useState<string>(defaultTemplate);
   const [copied, setCopied] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -43,8 +49,13 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
     user.name?.trim() && user.email?.trim() && user.bookingLink?.trim()
   );
 
+  const isFirstNameValid = firstName.trim().length >= 1;
+  const isEmailValid = isValidEmail(email);
+  const isCompanyValid = company.trim().length >= 1;
+  const isTemplateValid = template !== defaultTemplate;
+
   const isFormValid = Boolean(
-    firstName.trim() && email.trim() && template && isProfileComplete
+    isFirstNameValid && isEmailValid && template && isProfileComplete
   );
 
   const copyBookingLink = () => {
@@ -122,8 +133,9 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="e.g. Tomás"
-                className="pl-9 h-10"
+                className="pl-9 pr-10 h-10"
               />
+              <FieldValidCheck show={isFirstNameValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -135,8 +147,9 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. tomas.rivera@example.com"
-                className="pl-9 h-10"
+                className="pl-9 pr-10 h-10"
               />
+              <FieldValidCheck show={isEmailValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -149,8 +162,9 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="e.g. Brightway Insurance"
-                className="pl-9 h-10"
+                className="pl-9 pr-10 h-10"
               />
+              <FieldValidCheck show={isCompanyValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -160,7 +174,7 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
               <select
                 value={template}
                 onChange={(e) => setTemplate(e.target.value)}
-                className="flex h-10 w-full min-w-0 rounded-4xl border border-input bg-input/30 px-3 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 appearance-none md:text-sm pl-9 cursor-pointer"
+                className="flex h-10 w-full min-w-0 rounded-4xl border border-input bg-input/30 px-3 py-1 text-base transition-colors outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 appearance-none md:text-sm pl-9 pr-10 cursor-pointer"
               >
                 {GHL_EMAIL_TEMPLATE_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -168,7 +182,10 @@ export function SendEmailTemplateForm({ user, agency }: SendEmailTemplateFormPro
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <FieldValidCheck show={isTemplateValid} className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none size-5" />
+              {!isTemplateValid && (
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              )}
             </div>
           </div>
         </div>

@@ -14,12 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 export interface FieldTrainerAgentSelectProps {
   value: Id<"fieldTrainerEnrollments"> | "";
   onValueChange: (id: Id<"fieldTrainerEnrollments">) => void;
   disabled?: boolean;
   enrollmentFilter?: "active" | "non-withdrawn";
+  className?: string;
 }
 
 export function FieldTrainerAgentSelect({
@@ -27,6 +29,7 @@ export function FieldTrainerAgentSelect({
   onValueChange,
   disabled,
   enrollmentFilter = "active",
+  className,
 }: FieldTrainerAgentSelectProps) {
   const { isAuthenticated } = useConvexAuth();
   const rawEnrollments = useQuery(
@@ -53,7 +56,7 @@ export function FieldTrainerAgentSelect({
   if (rawEnrollments === undefined) {
     return (
       <Select disabled>
-        <SelectTrigger className="w-full pl-9 h-10 bg-input/30">
+        <SelectTrigger className={cn("w-full pl-9 h-10 bg-input/30", className)}>
           <SelectValue placeholder="Loading agents..." />
         </SelectTrigger>
       </Select>
@@ -64,7 +67,7 @@ export function FieldTrainerAgentSelect({
     return (
       <div className="space-y-2">
         <Select disabled>
-          <SelectTrigger className="w-full pl-9 h-10 opacity-50 bg-input/30">
+          <SelectTrigger className={cn("w-full pl-9 h-10 opacity-50 bg-input/30", className)}>
             <SelectValue placeholder={enrollmentFilter === "non-withdrawn" ? "No removable agents found" : "No active agents found"} />
           </SelectTrigger>
         </Select>
@@ -85,7 +88,7 @@ export function FieldTrainerAgentSelect({
 
   return (
     <Select value={value} onValueChange={onValueChange as any} disabled={disabled}>
-      <SelectTrigger className="w-full pl-9 h-10 text-left bg-input/30">
+      <SelectTrigger className={cn("w-full pl-9 h-10 text-left bg-input/30", className)}>
         <SelectValue placeholder={enrollmentFilter === "non-withdrawn" ? "Select an agent" : "Select an active agent"}>
           {selectedAgent ? (
             <div className="flex items-center gap-2 truncate">

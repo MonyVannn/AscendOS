@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FIELD_TRAINER_OPTIONS } from "@/lib/ghl/field-trainer-options";
 import { Separator } from "@/components/ui/separator";
+import { SelectFieldWithValidCheck } from "@/components/ui/select-field-with-valid-check";
 import { toast } from "sonner";
 import { FieldTrainerAgentSelect } from "./field-trainer-agent-select";
 import { FieldTrainerSelector } from "./field-trainer-selector";
@@ -57,9 +58,12 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
     user.name?.trim() && user.email?.trim() && user.bookingLink?.trim()
   );
 
+  const isAgentValid = Boolean(selectedAgent);
+  const isTrainerValid = Boolean(trainer);
+
   // Relaxed validation: we don't require the profile to be complete to reassign a trainer.
   const isFormValid = Boolean(
-    selectedAgent && trainer
+    isAgentValid && isTrainerValid
   );
 
   const copyBookingLink = () => {
@@ -131,21 +135,27 @@ export function FieldTrainerReassignForm({ user, agency }: FieldTrainerReassignF
             <label className="text-xs font-semibold text-foreground/90">Select Agent</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <FieldTrainerAgentSelect
-                value={selectedAgentId}
-                onValueChange={setSelectedAgentId}
-                disabled={isSubmitting}
-              />
+              <SelectFieldWithValidCheck isValid={isAgentValid}>
+                <FieldTrainerAgentSelect
+                  value={selectedAgentId}
+                  onValueChange={setSelectedAgentId}
+                  disabled={isSubmitting}
+                  className="pr-10"
+                />
+              </SelectFieldWithValidCheck>
             </div>
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <label className="text-xs font-semibold text-foreground/90">Select New Trainer</label>
             <div className="relative">
               <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <FieldTrainerSelector
-                value={trainer}
-                onValueChange={setTrainer}
-              />
+              <SelectFieldWithValidCheck isValid={isTrainerValid}>
+                <FieldTrainerSelector
+                  value={trainer}
+                  onValueChange={setTrainer}
+                  className="pr-10"
+                />
+              </SelectFieldWithValidCheck>
             </div>
           </div>
         </div>

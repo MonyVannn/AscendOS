@@ -16,8 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { normalizePhone } from "@/lib/phone/normalize";
 import { FieldTrainerSelector } from "./field-trainer-selector";
 import { FieldValidCheck } from "@/components/ui/field-valid-check";
+import { SelectFieldWithValidCheck } from "@/components/ui/select-field-with-valid-check";
 
 interface FieldTrainerDripFormProps {
   user: {
@@ -42,12 +44,12 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
     user.name?.trim() && user.email?.trim() && user.bookingLink?.trim()
   );
 
-  const isFirstNameValid = Boolean(firstName.trim());
-  const isPhoneValid = Boolean(phone.trim());
+  const isNameValid = firstName.trim().length >= 3;
+  const isPhoneValid = /^\d{10}$/.test(phone);
   const isTrainerValid = Boolean(trainer);
 
   const isFormValid = Boolean(
-    isFirstNameValid && isPhoneValid && isTrainerValid && isProfileComplete
+    isNameValid && isPhoneValid && isTrainerValid && isProfileComplete
   );
 
   const copyBookingLink = () => {
@@ -67,8 +69,8 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          phone,
+          first_name: firstName.trim(),
+          phone: normalizePhone(phone),
           trainer,
         }),
       });
@@ -117,16 +119,16 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 pl-10">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground/90">Agent First Name</label>
+            <label className="text-xs font-semibold text-foreground/90">Agent Name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="e.g. Alex"
+                placeholder="e.g. Alex Smith"
                 className="pl-9 pr-10 h-10"
               />
-              <FieldValidCheck show={isFirstNameValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
+              <FieldValidCheck show={isNameValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -135,9 +137,11 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="tel"
+                inputMode="numeric"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="e.g. (555) 123-4567"
+                onChange={(e) => setPhone(normalizePhone(e.target.value))}
+                placeholder="e.g. 5551234567"
+                maxLength={10}
                 className="pl-9 pr-10 h-10"
               />
               <FieldValidCheck show={isPhoneValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
@@ -147,12 +151,13 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
             <label className="text-xs font-semibold text-foreground/90">Select Trainer</label>
             <div className="relative">
               <Sparkles className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <FieldTrainerSelector
-                value={trainer}
-                onValueChange={setTrainer}
-                className="pr-10"
-              />
-              <FieldValidCheck show={isTrainerValid} className="absolute right-8 top-1/2 -translate-y-1/2 z-10 pointer-events-none size-5" />
+              <SelectFieldWithValidCheck isValid={isTrainerValid}>
+                <FieldTrainerSelector
+                  value={trainer}
+                  onValueChange={setTrainer}
+                  className="pr-10"
+                />
+              </SelectFieldWithValidCheck>
             </div>
           </div>
         </div>

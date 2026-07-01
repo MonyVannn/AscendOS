@@ -19,6 +19,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { FieldValidCheck } from "@/components/ui/field-valid-check";
+import { SelectFieldWithValidCheck } from "@/components/ui/select-field-with-valid-check";
 import { toast } from "sonner";
 import { FieldTrainerAgentSelect } from "./field-trainer-agent-select";
 
@@ -56,13 +58,15 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
     user.name?.trim() && user.email?.trim() && user.bookingLink?.trim()
   );
 
+  const isAgentValid = Boolean(selectedAgent);
+
   // Parse week as integer
   const weekNum = parseInt(week, 10);
   const isValidWeek = !isNaN(weekNum) && weekNum >= 0 && week.trim() !== "";
 
   // Relaxed validation: we don't require the profile to be complete to reposition an agent.
   const isFormValid = Boolean(
-    selectedAgent && isValidWeek
+    isAgentValid && isValidWeek
   );
 
   const copyBookingLink = () => {
@@ -141,11 +145,14 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
             </div>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
-              <FieldTrainerAgentSelect
-                value={selectedAgentId}
-                onValueChange={setSelectedAgentId}
-                disabled={isSubmitting}
-              />
+              <SelectFieldWithValidCheck isValid={isAgentValid}>
+                <FieldTrainerAgentSelect
+                  value={selectedAgentId}
+                  onValueChange={setSelectedAgentId}
+                  disabled={isSubmitting}
+                  className="pr-10"
+                />
+              </SelectFieldWithValidCheck>
             </div>
           </div>
           
@@ -176,7 +183,11 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
                   value={week}
                   onChange={(e) => setWeek(e.target.value)}
                   placeholder="e.g. 0, 1, 2, 3..."
-                  className="pl-9 h-10"
+                  className="pl-9 pr-10 h-10"
+                />
+                <FieldValidCheck
+                  show={isValidWeek}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 size-5"
                 />
               </div>
             </div>
