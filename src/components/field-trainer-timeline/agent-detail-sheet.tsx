@@ -18,6 +18,8 @@ import { FIELD_TRAINER_WEEK_COLUMNS } from "@/lib/field-trainer/curriculum";
 import { formatActivityDateStacked } from "@/lib/format-activity-date";
 import { Separator } from "@/components/ui/separator";
 
+import { computeEffectiveWeek } from "@/lib/field-trainer/compute-effective-week";
+
 interface AgentDetailSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,6 +40,10 @@ export function AgentDetailSheet({ open, onOpenChange, enrollmentId }: AgentDeta
         return `Reassigned trainer${trainer ? ` to ${trainer}` : ""}`;
       case "repositioned_week":
         return `Moved to week ${week ?? "?"}`;
+      case "auto_advanced_week":
+        return `Auto-advanced to week ${week ?? "?"}`;
+      case "agent_removed":
+        return "Agent removed from program";
       default:
         return eventType;
     }
@@ -50,11 +56,27 @@ export function AgentDetailSheet({ open, onOpenChange, enrollmentId }: AgentDeta
       case "reassigned_trainer":
         return <UserCog className="w-3.5 h-3.5" />;
       case "repositioned_week":
+      case "auto_advanced_week":
         return <ArrowRight className="w-3.5 h-3.5" />;
       default:
         return <Clock className="w-3.5 h-3.5" />;
     }
   };
+
+  const [nowMs, setNowMs] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    if (open) {
+      // Small timeout to avoid state update during render/effect cascade issues
+      const timeout = setTimeout(() => setNowMs(Date.now()), 0);
+      const interval = setInterval(() => setNowMs(Date.now()), 60000);
+      return () => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+      };
+    }
+  }, [open]);
+
+  const effectiveWeek = detail ? computeEffectiveWeek(detail, nowMs) : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -131,8 +153,8 @@ export function AgentDetailSheet({ open, onOpenChange, enrollmentId }: AgentDeta
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Current Phase</span>
                     <span className="text-sm font-medium">
-                      {FIELD_TRAINER_WEEK_COLUMNS.find((c) => c.week === detail.currentWeek)?.title ||
-                        `Week ${detail.currentWeek}`}
+                      {FIELD_TRAINER_WEEK_COLUMNS.find((c) => c.week === effectiveWeek)?.title ||
+                        `Week ${effectiveWeek}`}
                     </span>
                   </div>
                   <Separator />

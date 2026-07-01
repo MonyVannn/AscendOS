@@ -9,9 +9,26 @@ import { FIELD_TRAINER_WEEK_COLUMNS } from "@/lib/field-trainer/curriculum";
 import { groupEnrollmentsByWeek, getEnrollmentSummaryStats } from "@/lib/field-trainer/group-enrollments-by-week";
 import { TimelineEnrollment } from "@/components/field-trainer-timeline/enrollment-card";
 
+import { computeEffectiveWeek } from "@/lib/field-trainer/compute-effective-week";
+import * as React from "react";
+
 export function DashboardFieldTrainerTimelinePreview() {
   const { isAuthenticated } = useConvexAuth();
-  const enrollments = useQuery(api.fieldTrainer.listForTimeline, isAuthenticated ? {} : "skip");
+  const rawEnrollments = useQuery(api.fieldTrainer.listForTimeline, isAuthenticated ? {} : "skip");
+
+  const [nowMs, setNowMs] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    const interval = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const enrollments = React.useMemo(() => {
+    if (!rawEnrollments) return undefined;
+    return rawEnrollments.map(e => ({
+      ...e,
+      currentWeek: computeEffectiveWeek(e, nowMs)
+    }));
+  }, [rawEnrollments, nowMs]);
 
   const isLoading = enrollments === undefined;
 

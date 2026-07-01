@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useQuery, useConvexAuth } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
@@ -41,6 +41,7 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
     api.fieldTrainer.listForTimeline,
     isAuthenticated ? {} : "skip"
   );
+  const setEnrollmentWeek = useMutation(api.fieldTrainer.setEnrollmentWeek);
 
   const activeEnrollments = React.useMemo(() => {
     if (!rawEnrollments) return [];
@@ -78,11 +79,22 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
   };
 
   const handleSend = React.useCallback(async () => {
-    if (!isFormValid || isSubmitting || !selectedAgent) return;
+    if (!isFormValid || isSubmitting || !selectedAgent || !selectedAgentId) return;
     
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/ghl/field-trainer-reposition", {
+      // 1. Update Convex immediately (primary)
+      await setEnrollmentWeek({
+        enrollmentId: selectedAgentId as Id<"fieldTrainerEnrollments">,
+        week: weekNum,
+      });
+      
+      toast.success("Agent repositioned successfully");
+      setSelectedAgentId("");
+      setWeek("");
+
+      // 2. Fire GHL webhook (secondary, best-effort)
+      fetch("/api/ghl/field-trainer-reposition", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -90,23 +102,16 @@ export function FieldTrainerRepositionForm({ user, agency }: FieldTrainerReposit
           phone: selectedAgent.phone,
           current_week: weekNum,
         }),
+      }).catch(err => {
+        console.error("GHL webhook failed", err);
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Agent repositioned successfully");
-        setSelectedAgentId("");
-        setWeek("");
-      } else {
-        toast.error(data.error || "Failed to reposition agent");
-      }
-    } catch {
-      toast.error("Unexpected error. Please try again.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Unexpected error. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  }, [isFormValid, isSubmitting, selectedAgent, weekNum]);
+  }, [isFormValid, isSubmitting, selectedAgent, selectedAgentId, weekNum, setEnrollmentWeek]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

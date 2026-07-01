@@ -11,6 +11,7 @@
 import type * as activityLog from "../activityLog.js";
 import type * as admin from "../admin.js";
 import type * as catalog from "../catalog.js";
+import type * as crons from "../crons.js";
 import type * as dashboard from "../dashboard.js";
 import type * as featureRegistry from "../featureRegistry.js";
 import type * as features from "../features.js";
@@ -18,6 +19,7 @@ import type * as fieldTrainer from "../fieldTrainer.js";
 import type * as fieldTrainerValidators from "../fieldTrainerValidators.js";
 import type * as ghlInbound from "../ghlInbound.js";
 import type * as http from "../http.js";
+import type * as lib_fieldTrainerWeek from "../lib/fieldTrainerWeek.js";
 import type * as lib_integrationEntitlements from "../lib/integrationEntitlements.js";
 import type * as resourceHub from "../resourceHub.js";
 import type * as resourceHubValidators from "../resourceHubValidators.js";
@@ -27,6 +29,7 @@ import type * as search from "../search.js";
 import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as tenant from "../tenant.js";
+import type * as testFieldTrainer from "../testFieldTrainer.js";
 import type * as users from "../users.js";
 
 import type {
@@ -39,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   activityLog: typeof activityLog;
   admin: typeof admin;
   catalog: typeof catalog;
+  crons: typeof crons;
   dashboard: typeof dashboard;
   featureRegistry: typeof featureRegistry;
   features: typeof features;
@@ -46,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   fieldTrainerValidators: typeof fieldTrainerValidators;
   ghlInbound: typeof ghlInbound;
   http: typeof http;
+  "lib/fieldTrainerWeek": typeof lib_fieldTrainerWeek;
   "lib/integrationEntitlements": typeof lib_integrationEntitlements;
   resourceHub: typeof resourceHub;
   resourceHubValidators: typeof resourceHubValidators;
@@ -55,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   settings: typeof settings;
   tenant: typeof tenant;
+  testFieldTrainer: typeof testFieldTrainer;
   users: typeof users;
 }>;
 

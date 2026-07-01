@@ -1,10 +1,10 @@
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import {
   fieldTrainerNameValidator,
   fieldTrainerEventTypeValidator,
-  FIELD_TRAINER_MAX_WEEK,
 } from "./fieldTrainerValidators";
+import { applyWeekChange, computeEffectiveWeek, getMissedAutoAdvances } from "./lib/fieldTrainerWeek";
 
 export const applyEnrollmentFromSubmission = mutation({
   args: {
@@ -60,6 +60,7 @@ export const applyEnrollmentFromSubmission = mutation({
           fieldTrainer: args.fieldTrainer,
           assignedRdUserId: args.userId,
           programStartedAt: now,
+          weekEffectiveAt: now,
           createdAt: now,
           updatedAt: now,
         });
@@ -78,6 +79,7 @@ export const applyEnrollmentFromSubmission = mutation({
           fieldTrainer: args.fieldTrainer,
           assignedRdUserId: args.userId,
           programStartedAt: now,
+          weekEffectiveAt: now,
           createdAt: now,
           updatedAt: now,
         });
@@ -100,14 +102,9 @@ export const applyEnrollmentFromSubmission = mutation({
         updates.assignedRdUserId = args.userId;
       } else if (args.eventType === "repositioned_week") {
         if (args.week !== undefined) {
-          updates.currentWeek = args.week;
-          if (args.week >= FIELD_TRAINER_MAX_WEEK) {
-            updates.programStatus = "completed";
-          } else {
-            updates.programStatus = "active";
-          }
+          const patch = applyWeekChange(args.week, now);
+          Object.assign(updates, patch);
         }
-        updates.weekEffectiveAt = now;
         updates.assignedRdUserId = args.userId;
       } else if (args.eventType === "agent_removed") {
         updates.programStatus = "withdrawn";
@@ -202,14 +199,14 @@ export const getEnrollmentDetail = query({
 
     const eventsWithUsers = [];
     for (const event of events) {
-      const user = await ctx.db.get(event.performedByUserId);
+      const user = event.performedByUserId ? await ctx.db.get(event.performedByUserId) : null;
       eventsWithUsers.push({
         _id: event._id,
         eventType: event.eventType,
         occurredAt: event.occurredAt,
         week: event.week,
         fieldTrainer: event.fieldTrainer,
-        performedByName: user?.name || user?.email || "Unknown",
+        performedByName: user?.name || user?.email || (event.eventType === "auto_advanced_week" ? "System" : "Unknown"),
       });
     }
 
@@ -232,5 +229,85 @@ export const getEnrollmentDetail = query({
       },
       events: eventsWithUsers,
     };
+  },
+});
+
+export const setEnrollmentWeek = mutation({
+  args: {
+    enrollmentId: v.id("fieldTrainerEnrollments"),
+    week: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const caller = await ctx.db
+      .query("users")
+      .withIndex("by_clerk", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    if (!caller || !caller.agencyId) throw new Error("Unauthorized");
+
+    const enrollment = await ctx.db.get(args.enrollmentId);
+    if (!enrollment) throw new Error("Enrollment not found");
+    if (enrollment.agencyId !== caller.agencyId) throw new Error("Unauthorized");
+    if (enrollment.programStatus === "withdrawn") throw new Error("Agent is withdrawn");
+
+    const now = Date.now();
+    const patch = applyWeekChange(args.week, now);
+    
+    await ctx.db.patch(args.enrollmentId, patch);
+
+    await ctx.db.insert("fieldTrainerEvents", {
+      agencyId: enrollment.agencyId,
+      enrollmentId: args.enrollmentId,
+      eventType: "repositioned_week",
+      performedByUserId: caller._id,
+      week: patch.currentWeek,
+      fieldTrainer: enrollment.fieldTrainer,
+      occurredAt: now,
+    });
+  },
+});
+
+export const syncEnrollmentWeeks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const enrollments = await ctx.db
+      .query("fieldTrainerEnrollments")
+      .filter((q) => q.eq(q.field("programStatus"), "active"))
+      .collect();
+
+    const now = Date.now();
+    let updatedCount = 0;
+
+    for (const enrollment of enrollments) {
+      const advances = getMissedAutoAdvances(enrollment, now);
+      
+      if (advances.length > 0) {
+        const latestAdvance = advances[advances.length - 1];
+        
+        // We set the weekEffectiveAt to exactly when they reached the latest week
+        const patch = applyWeekChange(latestAdvance.week, latestAdvance.occurredAt);
+        patch.updatedAt = now; // Actually updated now
+        
+        await ctx.db.patch(enrollment._id, patch);
+
+        for (const adv of advances) {
+          await ctx.db.insert("fieldTrainerEvents", {
+            agencyId: enrollment.agencyId,
+            enrollmentId: enrollment._id,
+            eventType: "auto_advanced_week",
+            week: adv.week,
+            fieldTrainer: enrollment.fieldTrainer,
+            occurredAt: adv.occurredAt,
+          });
+        }
+
+        updatedCount++;
+      }
+    }
+
+    return { updatedCount };
   },
 });

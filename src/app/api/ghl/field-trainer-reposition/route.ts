@@ -98,18 +98,9 @@ export async function POST(req: Request) {
           errorMessage: result.ok ? undefined : result.errorMessage,
           latencyMs: latency_ms,
         }, { token: token ?? undefined });
-
-        if (result.ok) {
-          await fetchMutation(api.fieldTrainer.applyEnrollmentFromSubmission, {
-            agencyId: agency._id,
-            userId: user._id,
-            phone: parsed.data.phone,
-            firstName: parsed.data.first_name,
-            eventType: "repositioned_week",
-            week: parsed.data.current_week,
-            webhookLogId: logResult.id,
-          }, { token: token ?? undefined });
-        }
+        
+        // Note: Convex enrollment week update is now handled directly by the client
+        // via setEnrollmentWeek mutation before calling this endpoint.
       } catch (logErr) {
         console.error("Failed to record submission or enrollment in Convex:", logErr);
       }

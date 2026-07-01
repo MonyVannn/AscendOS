@@ -177,7 +177,7 @@ export default defineSchema({
     agencyId: v.id("agencies"),
     enrollmentId: v.id("fieldTrainerEnrollments"),
     eventType: fieldTrainerEventTypeValidator,
-    performedByUserId: v.id("users"),
+    performedByUserId: v.optional(v.id("users")),
     week: v.optional(v.number()),
     fieldTrainer: v.optional(fieldTrainerNameValidator),
     webhookLogId: v.optional(v.id("webhookLogs")),

@@ -13,12 +13,21 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
 
+import { computeEffectiveWeek } from "@/lib/field-trainer/compute-effective-week";
+
 export function FieldTrainerTimelinePageClient() {
   const { isAuthenticated } = useConvexAuth();
   const searchParams = useSearchParams();
   const initialEnrollmentId = searchParams.get("enrollment") as Id<"fieldTrainerEnrollments"> | null;
 
   const rawEnrollments = useQuery(api.fieldTrainer.listForTimeline, isAuthenticated ? {} : "skip");
+
+  // Keep a local "now" timestamp that updates occasionally so the board can shift without reload
+  const [nowMs, setNowMs] = React.useState(() => Date.now());
+  React.useEffect(() => {
+    const interval = setInterval(() => setNowMs(Date.now()), 60000); // refresh every minute
+    return () => clearInterval(interval);
+  }, []);
 
   const [search, setSearch] = React.useState("");
   const [selectedEnrollmentId, setSelectedEnrollmentId] = React.useState<Id<"fieldTrainerEnrollments"> | null>(initialEnrollmentId);
@@ -27,15 +36,22 @@ export function FieldTrainerTimelinePageClient() {
 
   const filteredEnrollments = React.useMemo(() => {
     if (!rawEnrollments) return [];
-    if (!search.trim()) return rawEnrollments;
+    
+    // Compute effective week and optionally overwrite currentWeek 
+    const withEffective = rawEnrollments.map(e => ({
+      ...e,
+      currentWeek: computeEffectiveWeek(e, nowMs)
+    }));
+
+    if (!search.trim()) return withEffective;
 
     const query = search.toLowerCase();
-    return rawEnrollments.filter((e) => 
+    return withEffective.filter((e) => 
       e.firstName.toLowerCase().includes(query) ||
       e.fieldTrainer.toLowerCase().includes(query) ||
       e.assignedRdName.toLowerCase().includes(query)
     );
-  }, [rawEnrollments, search]);
+  }, [rawEnrollments, search, nowMs]);
 
   return (
     <div className="mx-auto max-w-[1600px] h-[calc(100vh-2rem)] flex flex-col pt-6 px-4 sm:px-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
