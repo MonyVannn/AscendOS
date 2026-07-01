@@ -11,13 +11,17 @@ import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 
 export function FieldTrainerTimelinePageClient() {
   const { isAuthenticated } = useConvexAuth();
+  const searchParams = useSearchParams();
+  const initialEnrollmentId = searchParams.get("enrollment") as Id<"fieldTrainerEnrollments"> | null;
+
   const rawEnrollments = useQuery(api.fieldTrainer.listForTimeline, isAuthenticated ? {} : "skip");
 
   const [search, setSearch] = React.useState("");
-  const [selectedEnrollmentId, setSelectedEnrollmentId] = React.useState<Id<"fieldTrainerEnrollments"> | null>(null);
+  const [selectedEnrollmentId, setSelectedEnrollmentId] = React.useState<Id<"fieldTrainerEnrollments"> | null>(initialEnrollmentId);
 
   const isLoading = rawEnrollments === undefined;
 

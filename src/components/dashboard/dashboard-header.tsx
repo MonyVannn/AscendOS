@@ -24,6 +24,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { DashboardCommandMenu } from "@/components/dashboard/dashboard-command-menu";
 import { TenantContext } from "@/lib/tenant";
 import { ROLE_LABELS, UserRole } from "@/lib/roles";
 
@@ -36,6 +37,8 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
   const { user: clerkUser, isLoaded } = useUser();
   const { agency, theme, ghlConnected, user: dbUser } = tenant;
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+  const [commandOpen, setCommandOpen] = React.useState(false);
+  const [mobileCommandOpen, setMobileCommandOpen] = React.useState(false);
 
   const title = agency?.name;
   const subtitle = `${agency?.name} · Admin Hub`;
@@ -49,6 +52,24 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
         setShortcutPrefix("Ctrl");
       }
     }
+  }, []);
+
+  // Keyboard shortcut listener
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        // Prefer inline on desktop, dialog on mobile
+        if (window.innerWidth >= 768) {
+          setCommandOpen((open) => !open);
+        } else {
+          setMobileCommandOpen((open) => !open);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
   }, []);
 
   return (
@@ -106,21 +127,26 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
 
       {/* Middle: Search */}
       <div className="hidden md:flex relative max-w-md w-full ml-8 mr-auto">
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search forms, agents, submi..."
-          className="w-full rounded-md bg-muted/50 pl-9 pr-12 focus-visible:bg-background"
+        <DashboardCommandMenu 
+          tenant={tenant} 
+          open={commandOpen} 
+          onOpenChange={setCommandOpen} 
+          variant="inline"
         />
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center pointer-events-none">
-          <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-            <span className="text-xs">{shortcutPrefix}</span>K
-          </kbd>
-        </div>
       </div>
 
       {/* Right: Actions & User */}
       <div className="flex items-center gap-2 md:gap-4 shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden text-muted-foreground"
+          onClick={() => setMobileCommandOpen(true)}
+          aria-label="Open search"
+        >
+          <Search className="h-5 w-5" />
+        </Button>
+
         <Badge
           variant="outline"
           className={`hidden md:inline-flex gap-1.5 ${
@@ -216,6 +242,13 @@ export function DashboardHeader({ tenant, appVersion }: DashboardHeaderProps) {
           <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />
         )}
       </div>
+
+      <DashboardCommandMenu 
+        tenant={tenant} 
+        open={mobileCommandOpen} 
+        onOpenChange={setMobileCommandOpen} 
+        variant="dialog"
+      />
     </header>
   );
 }

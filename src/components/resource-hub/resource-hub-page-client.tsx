@@ -13,14 +13,17 @@ import { ResourceNudgeList } from "./resource-nudge-list";
 import { ResourceCategory, ResourceItem } from "@/lib/resource-hub/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Id } from "@/convex/_generated/dataModel";
+import { useSearchParams } from "next/navigation";
 
 export function ResourceHubPageClient() {
   const { isAuthenticated } = useConvexAuth();
+  const searchParams = useSearchParams();
+
   const rawResources = useQuery(api.resourceHub.listResources, isAuthenticated ? {} : "skip");
   const shareStats = useQuery(api.resourceShares.getShareStatsForAgency, isAuthenticated ? {} : "skip");
   
   const [activeTab, setActiveTab] = React.useState<ResourceFilterTab>("all");
-  const [searchQuery, setSearchQuery] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get("q") || "");
   const [addSheetOpen, setAddSheetOpen] = React.useState(false);
   const [addCategory, setAddCategory] = React.useState<ResourceCategory>("document");
   const [previewResourceId, setPreviewResourceId] = React.useState<Id<"resources"> | null>(null);

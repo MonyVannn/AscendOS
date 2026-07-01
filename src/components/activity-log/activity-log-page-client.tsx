@@ -12,14 +12,16 @@ import { ActivityLogEntry, ActivityLogStatusFilter } from "./activity-log-types"
 import { getToolDisplayName } from "@/lib/feature-tool-mapping"
 import { subDays, startOfDay, endOfDay } from "date-fns"
 import { DateRange } from "react-day-picker"
+import { useSearchParams } from "next/navigation"
 
 const PAGE_SIZE = 10
 
 export function ActivityLogPageClient() {
   const { isAuthenticated } = useConvexAuth()
+  const searchParams = useSearchParams()
   
   const [status, setStatus] = React.useState<ActivityLogStatusFilter>("all")
-  const [search, setSearch] = React.useState("")
+  const [search, setSearch] = React.useState(searchParams.get("q") || "")
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: subDays(new Date(), 30),
     to: new Date(),
