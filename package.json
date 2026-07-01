@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.2.9",
+    "@lottiefiles/dotlottie-react": "^0.19.6",
     "@tabler/icons-react": "^3.41.1",
     "@tanstack/react-form": "^1.29.1",
     "@tanstack/react-table": "^8.21.3",

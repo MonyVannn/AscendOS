@@ -12,22 +12,26 @@ import {
 import { FIELD_TRAINER_OPTIONS } from "@/lib/ghl/field-trainer-options";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+import { cn } from "@/lib/utils";
+
 export interface FieldTrainerSelectorProps {
   value: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
+  className?: string;
 }
 
 export function FieldTrainerSelector({
   value,
   onValueChange,
   placeholder = "Select Trainer",
+  className,
 }: FieldTrainerSelectorProps) {
   const selectedTrainer = FIELD_TRAINER_OPTIONS.find((t) => t.value === value);
 
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="w-full pl-9 h-12 text-left bg-input/30">
+      <SelectTrigger className={cn("w-full pl-9 h-12 text-left bg-input/30", className)}>
         <SelectValue placeholder={placeholder}>
           {selectedTrainer ? (
             <div className="flex items-center gap-2 truncate">

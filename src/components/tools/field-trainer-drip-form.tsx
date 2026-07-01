@@ -14,10 +14,10 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { FIELD_TRAINER_OPTIONS } from "@/lib/ghl/field-trainer-options";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { FieldTrainerSelector } from "./field-trainer-selector";
+import { FieldValidCheck } from "@/components/ui/field-valid-check";
 
 interface FieldTrainerDripFormProps {
   user: {
@@ -42,8 +42,12 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
     user.name?.trim() && user.email?.trim() && user.bookingLink?.trim()
   );
 
+  const isFirstNameValid = Boolean(firstName.trim());
+  const isPhoneValid = Boolean(phone.trim());
+  const isTrainerValid = Boolean(trainer);
+
   const isFormValid = Boolean(
-    firstName.trim() && phone.trim() && trainer && isProfileComplete
+    isFirstNameValid && isPhoneValid && isTrainerValid && isProfileComplete
   );
 
   const copyBookingLink = () => {
@@ -120,8 +124,9 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="e.g. Alex"
-                className="pl-9 h-10"
+                className="pl-9 pr-10 h-10"
               />
+              <FieldValidCheck show={isFirstNameValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -133,8 +138,9 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="e.g. (555) 123-4567"
-                className="pl-9 h-10"
+                className="pl-9 pr-10 h-10"
               />
+              <FieldValidCheck show={isPhoneValid} className="absolute right-3 top-1/2 -translate-y-1/2 size-5" />
             </div>
           </div>
           <div className="space-y-1.5 md:col-span-2">
@@ -144,7 +150,9 @@ export function FieldTrainerDripForm({ user, agency }: FieldTrainerDripFormProps
               <FieldTrainerSelector
                 value={trainer}
                 onValueChange={setTrainer}
+                className="pr-10"
               />
+              <FieldValidCheck show={isTrainerValid} className="absolute right-8 top-1/2 -translate-y-1/2 z-10 pointer-events-none size-5" />
             </div>
           </div>
         </div>
