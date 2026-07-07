@@ -10,6 +10,11 @@
   --landing-oceanic-tint: color-mix(in srgb, var(--landing-oceanic) 6%, var(--landing-wheat));
   --landing-onyx-muted: color-mix(in srgb, var(--landing-onyx) 72%, var(--landing-wheat));
   --landing-wheat-muted: color-mix(in srgb, var(--landing-wheat) 78%, var(--landing-oceanic));
+
+  /* Bento accents */
+  --landing-bento-nectarine: color-mix(in srgb, var(--landing-nectarine) 35%, var(--landing-wheat));
+  --landing-bento-oceanic: var(--landing-oceanic-tint);
+  --landing-bento-wheat: var(--landing-wheat-muted);
 }
 
 /* Smooth anchor scrolling while the landing page is mounted */
