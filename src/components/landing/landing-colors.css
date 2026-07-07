@@ -1,0 +1,18 @@
+/* Jenny Henderson Studio palette, scoped to the marketing landing page only.
+   Do not promote these to :root — dashboard/admin themes are per-agency. */
+.landing-page {
+  --landing-onyx: #0a171d;
+  --landing-wheat: #fff6e9;
+  --landing-oceanic: #003f47;
+  --landing-nectarine: #ffbd76;
+
+  /* Derived tints */
+  --landing-oceanic-tint: color-mix(in srgb, var(--landing-oceanic) 6%, var(--landing-wheat));
+  --landing-onyx-muted: color-mix(in srgb, var(--landing-onyx) 72%, var(--landing-wheat));
+  --landing-wheat-muted: color-mix(in srgb, var(--landing-wheat) 78%, var(--landing-oceanic));
+}
+
+/* Smooth anchor scrolling while the landing page is mounted */
+html:has(.landing-page) {
+  scroll-behavior: smooth;
+}
